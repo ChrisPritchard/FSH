@@ -1,4 +1,5 @@
 ﻿open Terminal
+open System
 
 [<EntryPoint>]
 let main _ =
@@ -22,14 +23,22 @@ let main _ =
         cursor false
         read
 
-    let rec endlessEcho () =
+    let processCommand (s : string) =
+        let parts = s.Split ([|" "|], StringSplitOptions.None)
+        if parts.Length > 0 then
+            if parts.[0] = "echo" then
+                colour "yellow"
+                printfn "%s" s.[5..]
+            else
+                printfn "%s: command not found" parts.[0]
+
+    let rec coreLoop () =
         let entered = prompt ()
         if entered = "exit" then ()
         else
-            colour "yellow"
-            if entered <> "" then printfn "%s" entered
-            endlessEcho ()
+            processCommand entered
+            coreLoop ()
 
-    endlessEcho ()
+    coreLoop ()
 
     0

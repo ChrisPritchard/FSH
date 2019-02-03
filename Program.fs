@@ -2,27 +2,33 @@
 
 [<EntryPoint>]
 let main _ =
+    cursor false
     colour "Green"
 
-    writeLine (sprintf "Welcome to - SYMENET -")
+    printfn "Welcome to - SYMENET -"
 
     defaultColour ()
 
-    writeLine ""
-    writeLine ""
-    writeLine "If you don't know what to type next, try '?' or 'help'"
+    printfn ""
+    printfn ""
+    printfn "If you don't know what to type next, try '?' or 'help'"
 
     let prompt () = 
         colour "Red"
-        write ".\> "
+        printf ".\> "
+        cursor true
         defaultColour ()
-        readLine ()
+        let read = readLine ()
+        cursor false
+        read
 
     let rec endlessEcho () =
         let entered = prompt ()
-        colour "yellow"
-        if entered <> "" then writeLine entered
-        endlessEcho ()
+        if entered = "exit" then ()
+        else
+            colour "yellow"
+            if entered <> "" then printfn "%s" entered
+            endlessEcho ()
 
     endlessEcho ()
 

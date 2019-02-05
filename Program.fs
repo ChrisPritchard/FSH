@@ -20,6 +20,27 @@ let main _ =
         let read = readLine ()
         cursor false
         read
+
+    let parts s = 
+        let (last, parts, _) =
+            ((None, [], ' '), s) 
+            ||> Seq.fold (fun (current, soFar, last) c ->
+                    let next = 
+                        match c, current with
+                        | '\"', None when last = '\\' -> Some "\""
+                        | '\"', Some n when last = '\\' -> Some (n + "\"")
+                        | '\"', None -> Some ""
+                        | '\"', Some _ -> None
+                        | ' ', Some _ -> None
+                        | c, Some n -> Some (n + string c)
+                        | c, None -> Some (string c)
+                    let soFar = 
+                        match next, current with
+                        | None, Some n -> n::soFar
+                        | _ -> soFar
+                    (next, soFar, c))
+        let final = match last with None -> parts | Some s -> s::parts
+        List.rev final
     
     let launchProcess (s: string) =
         let fileName, arguments = 
@@ -50,6 +71,7 @@ let main _ =
                 printfn "%s: %s" fileName ex.Message
 
     let processCommand path (s : string) =
+        let test = parts s
         if s.Length = 0 then path // no command so just loop
         else if s.[0] = '(' then path // start fsi
         else

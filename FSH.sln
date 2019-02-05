@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SymeNet", "SymeNet.fsproj", "{DC4A18F2-8E67-4CA1-BA1B-8D24A8D62343}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FSH", "FSH.fsproj", "{DC4A18F2-8E67-4CA1-BA1B-8D24A8D62343}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,9 +13,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{DC4A18F2-8E67-4CA1-BA1B-8D24A8D62343}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -30,5 +27,11 @@ Global
 		{DC4A18F2-8E67-4CA1-BA1B-8D24A8D62343}.Release|x64.Build.0 = Release|Any CPU
 		{DC4A18F2-8E67-4CA1-BA1B-8D24A8D62343}.Release|x86.ActiveCfg = Release|Any CPU
 		{DC4A18F2-8E67-4CA1-BA1B-8D24A8D62343}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {25201F31-90FB-402D-981D-CFD924C8E602}
 	EndGlobalSection
 EndGlobal

@@ -9,48 +9,39 @@ open System.IO
 let main _ =
 
     cursor false
-    colour "Green"
-
-    printfn "Welcome to - SYMENET -"
 
     defaultColour ()
+    printfn "For commands type '?', 'man' 'help'"
 
-    printfn ""
-    printfn ""
-    printfn "If you don't know what to type next, try '?' or 'help'"
-
-    let prompt () = 
-        colour "Red"
-        printf "fsh[%s]> " (AppDomain.CurrentDomain.BaseDirectory)
+    let prompt path = 
+        colour "Magenta"
+        printf "fsh[%s]> " path
         cursor true
         defaultColour ()
         let read = readLine ()
         cursor false
         read
 
-    let processCommand (s : string) =
-        if s.Length = 0 then () // no command so just loop
-        else if s.[0] = '(' then () // start fsi
+    let processCommand path (s : string) =
+        if s.Length = 0 then path // no command so just loop
+        else if s.[0] = '(' then path // start fsi
         else
             let fileName, arguments = 
                 match Seq.tryFindIndex ((=) ' ') s with None -> s, "" | Some i -> s.[0..i-1], s.[i..]
             
-            if not (File.Exists fileName) then
-                colour "Yellow"
-                printfn "%s: executable not found" fileName
-            else
-                let op = 
-                    new ProcessStartInfo(fileName, arguments,
-                        CreateNoWindow = true,
-                        RedirectStandardOutput = true,
-                        RedirectStandardInput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false)
-                    |> fun i -> new Process (StartInfo = i)
+            let op = 
+                new ProcessStartInfo(fileName, arguments,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardInput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false)
+                |> fun i -> new Process (StartInfo = i)
                 
-                op.OutputDataReceived.Add(fun e -> printfn "%s" e.Data)
-                op.ErrorDataReceived.Add(fun e -> printfn "%s" e.Data)
+            op.OutputDataReceived.Add(fun e -> printfn "%s" e.Data)
+            op.ErrorDataReceived.Add(fun e -> printfn "%s" e.Data)
 
+            try
                 op.Start () |> ignore
 
                 colour "Green"
@@ -58,13 +49,20 @@ let main _ =
                 op.WaitForExit ()
                 op.CancelOutputRead ()
 
-    let rec coreLoop () =
-        let entered = prompt ()
+                path
+            with
+                | :? System.ComponentModel.Win32Exception as ex -> 
+                    colour "Red"
+                    printfn "%s: %s" fileName ex.Message
+                    path            
+
+    let rec coreLoop path =
+        let entered = prompt path
         if entered = "exit" then ()
         else
-            let nextPath = processCommand entered
+            let nextPath = processCommand path entered
             coreLoop nextPath
 
-    coreLoop ()
+    coreLoop AppDomain.CurrentDomain.BaseDirectory
 
     0

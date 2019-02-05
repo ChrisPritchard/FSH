@@ -14,7 +14,7 @@ let main _ =
 
     let prompt path = 
         colour "Magenta"
-        printf "fsh[%s]> " path
+        printf "FSH %s> " path
         cursor true
         defaultColour ()
         let read = readLine ()

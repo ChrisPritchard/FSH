@@ -1,3 +1,3 @@
-# SymeNet
+# FSH
 
-F# Hacker/Botnet simulator
+F# Shell with integrated F# scripting

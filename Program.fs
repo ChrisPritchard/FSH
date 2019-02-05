@@ -1,20 +1,11 @@
 ﻿open Terminal
-open System
 
-type FileSystem = 
-    | File of name:string * size:int
-    | Folder of name:string * FileSystem list
+open System
+open System.Threading
+open System.Diagnostics
 
 [<EntryPoint>]
 let main _ =
-
-    let root = [
-        Folder ("bin", [])
-        Folder ("etc", [])
-        Folder ("home", [
-            Folder ("user", [])
-        ])
-    ]
 
     cursor false
     colour "Green"
@@ -27,34 +18,46 @@ let main _ =
     printfn ""
     printfn "If you don't know what to type next, try '?' or 'help'"
 
-    let prompt path = 
+    let prompt () = 
         colour "Red"
-        printf "user:%s$ " path
+        printf "fsh[%s]> " (AppDomain.CurrentDomain.BaseDirectory)
         cursor true
         defaultColour ()
         let read = readLine ()
         cursor false
         read
 
-    let processCommand path (s : string) =
-        let parts = s.Split ([|" "|], StringSplitOptions.None)
-        if parts.Length = 0 then path
+    let processCommand (s : string) =
+        if s.Length = 0 then () // no command so just loop
+        else if s.[0] = '(' then () // start fsi
         else
-            if parts.[0] = "echo" then
-                colour "Yellow"
-                printfn "%s" s.[5..]
-                path
-            else
-                printfn "%s: command not found" parts.[0]
-                path
+            let fileName, arguments = 
+                match Seq.tryFindIndex ((=) ' ') s with None -> s, "" | Some i -> s.[0..i-1], s.[i..]
+            
+            let op = 
+                new ProcessStartInfo(fileName, arguments,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardInput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false)
+                |> fun i -> new Process (StartInfo = i)
 
-    let rec coreLoop path =
-        let entered = prompt path
+            op.OutputDataReceived.Add(fun e -> printfn "%s" e.Data)
+            op.ErrorDataReceived.Add(fun e -> printfn "%s" e.Data)
+
+            op.Start () |> ignore
+            op.BeginOutputReadLine ()
+            op.WaitForExit ()
+            op.CancelOutputRead ()
+
+    let rec coreLoop () =
+        let entered = prompt ()
         if entered = "exit" then ()
         else
-            let nextPath = processCommand path entered
+            let nextPath = processCommand entered
             coreLoop nextPath
 
-    coreLoop "/home/user"
+    coreLoop ()
 
     0

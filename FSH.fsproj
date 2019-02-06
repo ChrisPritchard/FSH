@@ -9,6 +9,7 @@
     <None Include="LICENSE" />
     <None Include="README.md" />
     <Compile Include="Terminal.fs" />
+    <Compile Include="Builtins.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

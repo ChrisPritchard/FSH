@@ -1,4 +1,5 @@
 ﻿open Terminal
+open Builtins
 
 open System
 open System.Diagnostics
@@ -41,12 +42,9 @@ let main _ =
             ]
         parts "" false ' ' s
     
-    let launchProcess (s: string) =
-        let fileName, arguments = 
-            match Seq.tryFindIndex ((=) ' ') s with None -> s, "" | Some i -> s.[0..i-1], s.[i..]
-            
+    let launchProcess fileName args =
         let op = 
-            new ProcessStartInfo(fileName, arguments,
+            new ProcessStartInfo(fileName, args |> List.map (sprintf "\"%s\"") |> String.concat " ",
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true,
@@ -71,10 +69,21 @@ let main _ =
 
     let processCommand path (s : string) =
         if s.Length = 0 then path // no command so just loop
-        else if s.[0] = '(' then path // start fsi
-        else
-            launchProcess s
-            path
+        else 
+            let parts = parts s
+            let command = parts.[0]
+
+            match Map.tryFind command builtins with
+            | Some f -> 
+                f parts.[1..] path
+            | None ->
+                launchProcess command parts.[1..]
+                path
+
+        //if s.[0] = '(' then path // start fsi
+        //else
+        //    launchProcess s
+        //    path
 
     let rec coreLoop path =
         let entered = prompt path

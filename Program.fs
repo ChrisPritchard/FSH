@@ -21,28 +21,25 @@ let main _ =
         cursor false
         read
 
-    let parts s = 
-        [
-            let mutable last = ' '
-            let mutable quoted = false
-            let mutable soFar = ""
-
-            for c in s do
-                match c with
-                | '\"' when soFar = "" -> quoted <- true
-                | '\"' when last <> '\\' && quoted ->
-                    yield soFar
-                    quoted <- false
-                    soFar <- ""
-                | ' ' when last <> '\\' && not quoted ->
-                    if soFar <> "" then yield soFar
-                    soFar <- ""
-                | _ -> 
-                    soFar <- soFar + string c
-                    last <- c
-            
-            if soFar <> "" then yield soFar
-        ]
+    let parts s =
+        let rec parts soFar quoted last remainder = 
+            [
+                if remainder = "" then yield soFar
+                else
+                    let c, next = remainder.[0], remainder.[1..]
+                    match c with
+                    | '\"' when soFar = "" -> 
+                        yield! parts soFar true last next
+                    | '\"' when last <> '\\' && quoted ->
+                        yield soFar
+                        yield! parts "" false last next
+                    | ' ' when last <> '\\' && not quoted ->
+                        if soFar <> "" then yield soFar
+                        yield! parts "" quoted last next
+                    | _ -> 
+                        yield! parts (soFar + string c) quoted c next
+            ]
+        parts "" false ' ' s
     
     let launchProcess (s: string) =
         let fileName, arguments = 
@@ -73,7 +70,6 @@ let main _ =
                 printfn "%s: %s" fileName ex.Message
 
     let processCommand path (s : string) =
-        let test = parts s
         if s.Length = 0 then path // no command so just loop
         else if s.[0] = '(' then path // start fsi
         else

@@ -1,10 +1,8 @@
 ﻿open Terminal
 open Builtins
 
-open System
 open System.Diagnostics
 open System.ComponentModel
-open System.IO
 
 [<EntryPoint>]
 let main _ =
@@ -16,7 +14,7 @@ let main _ =
 
     let prompt () = 
         colour "Magenta"
-        printf "FSH %s> " (Directory.GetCurrentDirectory())
+        printf "FSH %s> " (currentDir ())
         cursor true
         defaultColour ()
         let read = readLine ()
@@ -79,11 +77,6 @@ let main _ =
                 f parts.[1..]
             | None ->
                 launchProcess command parts.[1..]
-
-        //if s.[0] = '(' then path // start fsi
-        //else
-        //    launchProcess s
-        //    path
 
     let rec coreLoop () =
         let entered = prompt ()

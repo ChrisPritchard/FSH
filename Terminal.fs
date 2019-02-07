@@ -1,6 +1,7 @@
 ﻿module Terminal
 
 open System
+open System.IO
 
 let originalColour = ConsoleColor.Gray
 
@@ -16,3 +17,5 @@ let read () = Console.Read ()
 let readLine () = Console.ReadLine ()
 
 let cursor b = Console.CursorVisible <- b
+
+let currentDir () = Directory.GetCurrentDirectory ()

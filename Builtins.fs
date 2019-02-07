@@ -2,6 +2,7 @@
 
 open System.IO
 open Terminal
+open System
 
 let echo args = 
     printfn "%s" (String.concat " " args)
@@ -33,10 +34,14 @@ let cd args =
         else
             printfn "directory not found"
 
+let clear _ = 
+    Console.Clear ()
+
 let builtins = 
     [
         "echo", echo
         "dir", dir
         "ls", dir
         "cd", cd
+        "clear", clear
     ] |> Map.ofList<string, string list -> unit>

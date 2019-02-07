@@ -51,7 +51,7 @@ let help args =
         printfn ""
         printfn "The following builtin commands are supported by FSH:"
         printfn ""
-        builtins |> Map.toList |> List.iter (fun (n, _) -> printfn "\t%s" n)
+        builtins |> Map.toList |> List.sortBy fst |> List.iter (fun (n, _) -> printfn "\t%s" n)
         printfn ""
         printfn "For further info on a command, use help [command name] [command name2] etc, e.g. 'help echo'"
         printfn ""

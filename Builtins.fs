@@ -39,9 +39,25 @@ let clear _ =
 
 let builtins = 
     [
-        "echo", echo
-        "dir", dir
-        "ls", dir
-        "cd", cd
-        "clear", clear
-    ] |> Map.ofList<string, string list -> unit>
+        "echo", (echo, "prints out all text following the echo command to output")
+        "dir", (dir, "same as ls, will list all files and directories. arguments are [path] [searchPattern], both optional")
+        "ls", (dir, "same as dir, will list all files and directories. arguments are [path] [searchPattern], both optional")
+        "cd", (cd, "changes the current directory to the directory specified by the first argument")
+        "clear", (clear, "clears the console")
+    ] |> Map.ofList<string, (string list -> unit) * string>
+
+let help args = 
+    if List.isEmpty args then
+        printfn ""
+        printfn "The following builtin commands are supported by FSH:"
+        printfn ""
+        builtins |> Map.toList |> List.iter (fun (n, _) -> printfn "\t%s" n)
+        printfn ""
+        printfn "For further info on a command, use help [command name] [command name2] etc, e.g. 'help echo'"
+        printfn ""
+    else
+        args 
+        |> List.choose (fun a -> 
+            Map.tryFind a builtins |> Option.bind (fun d -> Some (a, d)))
+        |> List.iter (fun (n, (_, s)) -> 
+            printfn "%s: %s" n s)

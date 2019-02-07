@@ -10,7 +10,7 @@ let main _ =
     cursor false
 
     defaultColour ()
-    printfn "For commands type '?', 'man' 'help'"
+    printfn "For a list of commands type '?' or 'help'"
 
     let prompt () = 
         colour "Magenta"
@@ -72,18 +72,21 @@ let main _ =
             let parts = parts s
             let command = parts.[0]
 
-            match Map.tryFind command builtins with
-            | Some f -> 
-                f parts.[1..]
-            | None ->
-                launchProcess command parts.[1..]
+            if command = "help" || command = "?" then
+                help parts.[1..]
+            else
+                match Map.tryFind command builtins with
+                | Some (f, _) -> 
+                    f parts.[1..]
+                | None ->
+                    launchProcess command parts.[1..]
 
     let rec coreLoop () =
         let entered = prompt ()
-        if entered = "exit" then ()
+        if entered.Trim() = "exit" then ()
         else
-            let nextPath = processCommand entered
-            coreLoop nextPath
+            processCommand entered
+            coreLoop ()
 
     coreLoop ()
 

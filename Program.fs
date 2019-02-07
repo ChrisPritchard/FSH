@@ -4,6 +4,7 @@ open Builtins
 open System
 open System.Diagnostics
 open System.ComponentModel
+open System.IO
 
 [<EntryPoint>]
 let main _ =
@@ -13,9 +14,9 @@ let main _ =
     defaultColour ()
     printfn "For commands type '?', 'man' 'help'"
 
-    let prompt path = 
+    let prompt () = 
         colour "Magenta"
-        printf "FSH %s> " path
+        printf "FSH %s> " (Directory.GetCurrentDirectory())
         cursor true
         defaultColour ()
         let read = readLine ()
@@ -67,31 +68,30 @@ let main _ =
                 colour "Red"
                 printfn "%s: %s" fileName ex.Message
 
-    let processCommand path (s : string) =
-        if s.Length = 0 then path // no command so just loop
+    let processCommand (s : string) =
+        if s.Length = 0 then () // no command so just loop
         else 
             let parts = parts s
             let command = parts.[0]
 
             match Map.tryFind command builtins with
             | Some f -> 
-                f parts.[1..] path
+                f parts.[1..]
             | None ->
                 launchProcess command parts.[1..]
-                path
 
         //if s.[0] = '(' then path // start fsi
         //else
         //    launchProcess s
         //    path
 
-    let rec coreLoop path =
-        let entered = prompt path
+    let rec coreLoop () =
+        let entered = prompt ()
         if entered = "exit" then ()
         else
-            let nextPath = processCommand path entered
+            let nextPath = processCommand entered
             coreLoop nextPath
 
-    coreLoop AppDomain.CurrentDomain.BaseDirectory
+    coreLoop ()
 
     0

@@ -48,13 +48,9 @@ let builtins =
 
 let help args = 
     if List.isEmpty args then
-        printfn ""
-        printfn "The following builtin commands are supported by FSH:"
-        printfn ""
+        printfn "\nThe following builtin commands are supported by FSH:\n"
         builtins |> Map.toList |> List.sortBy fst |> List.iter (fun (n, _) -> printfn "\t%s" n)
-        printfn ""
-        printfn "For further info on a command, use help [command name] [command name2] etc, e.g. 'help echo'"
-        printfn ""
+        printfn "\nFor further info on a command, use help [command name] [command name2] etc, e.g. 'help echo'\n"
     else
         args 
         |> List.choose (fun a -> 

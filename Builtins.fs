@@ -59,6 +59,14 @@ let rmdir args =
         else
             Directory.Delete path |> ignore
 
+let cat args = 
+    if List.isEmpty args then
+        printfn "no file specified"
+    elif not (File.Exists args.[0]) then
+        printfn "file not found"
+    else
+        printfn "%s" (File.ReadAllText args.[0])
+
 let builtins = 
     [
         "echo", (echo, "prints out all text following the echo command to output")
@@ -71,6 +79,7 @@ let builtins =
         "?", ((fun _ -> ()), "same as help, prints this page, or the help of specific commands")
         "help", ((fun _ -> ()), "same as ?, prints this page, or the help of specific commands")
         "exit", ((fun _ -> ()), "exits FSH")
+        "cat", (cat, "prints the contents of the file specified to the output")
     ] |> Map.ofList<string, (string list -> unit) * string>
 
 let help args = 

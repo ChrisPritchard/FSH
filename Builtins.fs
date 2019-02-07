@@ -68,6 +68,9 @@ let builtins =
         "clear", (clear, "clears the console")
         "mkdir", (mkdir, "creates a new directory at the position specified by the first argument")
         "rmdir", (rmdir, "removes an empty directory at the position specified by the first argument")
+        "?", ((fun _ -> ()), "same as help, prints this page, or the help of specific commands")
+        "help", ((fun _ -> ()), "same as ?, prints this page, or the help of specific commands")
+        "exit", ((fun _ -> ()), "exits FSH")
     ] |> Map.ofList<string, (string list -> unit) * string>
 
 let help args = 

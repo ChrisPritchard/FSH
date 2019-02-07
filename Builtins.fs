@@ -37,6 +37,28 @@ let cd args =
 let clear _ = 
     Console.Clear ()
 
+let mkdir args =
+    if List.isEmpty args then
+        printfn "no directory name speciifed"
+    else
+        let path = Path.Combine (currentDir(), args.[0])
+        if Directory.Exists path then
+            printfn "directory already exists"
+        else
+            Directory.CreateDirectory path |> ignore
+ 
+let rmdir args =
+    if List.isEmpty args then
+        printfn "no directory name speciifed"
+    else
+        let path = Path.Combine (currentDir(), args.[0])
+        if not (Directory.Exists path) then
+            printfn "directory does not exist"
+        elif Directory.GetFiles (path, "*", SearchOption.AllDirectories) |> Array.isEmpty |> not then
+            printfn "directory was not empty"
+        else
+            Directory.Delete path |> ignore
+
 let builtins = 
     [
         "echo", (echo, "prints out all text following the echo command to output")
@@ -44,6 +66,8 @@ let builtins =
         "ls", (dir, "same as dir, will list all files and directories. arguments are [path] [searchPattern], both optional")
         "cd", (cd, "changes the current directory to the directory specified by the first argument")
         "clear", (clear, "clears the console")
+        "mkdir", (mkdir, "creates a new directory at the position specified by the first argument")
+        "rmdir", (rmdir, "removes an empty directory at the position specified by the first argument")
     ] |> Map.ofList<string, (string list -> unit) * string>
 
 let help args = 

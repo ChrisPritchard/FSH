@@ -7,11 +7,23 @@ let echo args path =
     path
 
 let dir args path = 
-    let searchPath = if List.length args = 0 then path else Path.Combine (path, args.[0])
-    let searchPattern = if List.length args <= 1 then "*" else args.[1]
-    Directory.GetDirectories (searchPath, searchPattern) |> Seq.iter (Path.GetFileName >> printfn "%s/")
-    Directory.GetFiles (searchPath, searchPattern) |> Seq.iter (Path.GetFileName >> printfn "%s")
-    path
+    let searchPath = Path.Combine(path, if List.length args = 0 then "" else args.[0])
+    let searchPattern = if List.length args < 2 then "*" else args.[1]
+
+    if File.Exists searchPath then 
+        printfn "%s" (Path.GetFileName searchPath)
+        path
+    else
+        let finalPath, finalPattern = 
+            if Directory.Exists searchPath then searchPath, searchPattern
+            else if searchPattern = "*" then Path.GetDirectoryName searchPath, Path.GetFileName searchPath
+            else Path.GetDirectoryName searchPath, searchPattern
+        
+        Directory.GetDirectories (finalPath, finalPattern) 
+            |> Seq.iter (Path.GetFileName >> printfn "%s/")
+        Directory.GetFiles (finalPath, finalPattern) 
+            |> Seq.iter (Path.GetFileName >> printfn "%s")
+        path
 
 let builtins = 
     [

@@ -67,6 +67,17 @@ let cat args =
     else
         printfn "%s" (File.ReadAllText args.[0])
 
+//let cp args = 
+//    if List.length args <> 2 then
+//        printfn "wrong number of arguments: please specify source and dest"
+//    else
+//        let source = Path.Combine(currentDir(), args.[0])
+//        if not (File.Exists source) then
+//            printfn "source file path does not exist or is invalid"
+//        else
+//            let dest = Path.Combine(currentDir(), args.[1])
+//            if Directory.Exists dest
+
 let builtins = 
     [
         "echo", (echo, "prints out all text following the echo command to output")

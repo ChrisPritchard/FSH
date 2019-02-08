@@ -92,7 +92,30 @@ let cp args =
                 let dest = Path.Combine(dest, fileName)
                 File.Copy (source, dest)
                 printfn "file copied"
-                
+
+let mv args = 
+    if List.length args <> 2 then
+        printfn "wrong number of arguments: please specify source and dest"
+    else
+        let source = Path.Combine(currentDir(), args.[0])
+        if not (File.Exists source) then
+            printfn "source file path does not exist or is invalid"
+        else
+            let dest = Path.Combine(currentDir(), args.[1])
+            let isDir = Directory.Exists dest
+            let baseDir = Path.GetDirectoryName dest
+            if not isDir && not (Directory.Exists baseDir) then
+                printfn "destination directory or file path does not exist or is invalid"
+            elif File.Exists dest then
+                printfn "destination file already exists"
+            elif not isDir then
+                File.Move (source, dest)
+                printfn "file moved"
+            else
+                let fileName = Path.GetFileName source
+                let dest = Path.Combine(dest, fileName)
+                File.Move (source, dest)
+                printfn "file moved"                
 
 let builtins = 
     [
@@ -108,6 +131,7 @@ let builtins =
         "exit", ((fun _ -> ()), "exits FSH")
         "cat", (cat, "prints the contents of the file specified to the output")
         "cp", (cp, "copies the source file to the destination folder or filepath")
+        "mv", (mv, "moves the source file to the destination folder or filepath")
     ] |> Map.ofList<string, (string list -> unit) * string>
 
 let help args = 

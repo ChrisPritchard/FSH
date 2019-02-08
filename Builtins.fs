@@ -46,6 +46,7 @@ let mkdir args =
             printfn "directory already exists"
         else
             Directory.CreateDirectory path |> ignore
+            printfn "directory created"
  
 let rmdir args =
     if List.isEmpty args then
@@ -58,6 +59,7 @@ let rmdir args =
             printfn "directory was not empty"
         else
             Directory.Delete path |> ignore
+            printfn "directory deleted"
 
 let cat args = 
     if List.isEmpty args then
@@ -67,16 +69,30 @@ let cat args =
     else
         printfn "%s" (File.ReadAllText args.[0])
 
-//let cp args = 
-//    if List.length args <> 2 then
-//        printfn "wrong number of arguments: please specify source and dest"
-//    else
-//        let source = Path.Combine(currentDir(), args.[0])
-//        if not (File.Exists source) then
-//            printfn "source file path does not exist or is invalid"
-//        else
-//            let dest = Path.Combine(currentDir(), args.[1])
-//            if Directory.Exists dest
+let cp args = 
+    if List.length args <> 2 then
+        printfn "wrong number of arguments: please specify source and dest"
+    else
+        let source = Path.Combine(currentDir(), args.[0])
+        if not (File.Exists source) then
+            printfn "source file path does not exist or is invalid"
+        else
+            let dest = Path.Combine(currentDir(), args.[1])
+            let isDir = Directory.Exists dest
+            let baseDir = Path.GetDirectoryName dest
+            if not isDir && not (Directory.Exists baseDir) then
+                printfn "destination directory or file path does not exist or is invalid"
+            elif File.Exists dest then
+                printfn "destination file already exists"
+            elif not isDir then
+                File.Copy (source, dest)
+                printfn "file copied"
+            else
+                let fileName = Path.GetFileName source
+                let dest = Path.Combine(dest, fileName)
+                File.Copy (source, dest)
+                printfn "file copied"
+                
 
 let builtins = 
     [
@@ -91,6 +107,7 @@ let builtins =
         "help", ((fun _ -> ()), "same as ?, prints this page, or the help of specific commands")
         "exit", ((fun _ -> ()), "exits FSH")
         "cat", (cat, "prints the contents of the file specified to the output")
+        "cp", (cp, "copies the source file to the destination folder or filepath")
     ] |> Map.ofList<string, (string list -> unit) * string>
 
 let help args = 

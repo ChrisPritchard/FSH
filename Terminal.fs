@@ -3,6 +3,7 @@ module Terminal
 
 open System
 open System.IO
+open System
 
 /// The starting console colour, before it is overriden by prompts, outputs and help for example.
 let originalColour = ConsoleColor.Gray
@@ -51,7 +52,37 @@ let parts s =
     parts "" false ' ' s
 
 /// Reads a line of input from the user, enhanced for automatic tabbing and the like.
-let readLine () = Console.ReadLine ()
+let readLine () = 
+    let start = Console.CursorLeft
+    let rec reader (soFar: string) pos =
+        Console.CursorLeft <- start + pos
+        cursor true
+        let next = Console.ReadKey(true)
+        if next.Key = ConsoleKey.Enter then
+            Console.WriteLine()
+            soFar
+        elif next.Key = ConsoleKey.Backspace && Console.CursorLeft <> start then
+            reader (soFar.[0..pos-1] + soFar.[pos+1..]) (max 0 (pos - 1))
+        elif next.Key = ConsoleKey.LeftArrow then
+            reader soFar (max 0 (pos - 1))
+        elif next.Key = ConsoleKey.RightArrow then
+            reader soFar (min soFar.Length (pos + 1))
+        elif next.Key = ConsoleKey.Home then
+            reader soFar 0
+        elif next.Key = ConsoleKey.End then
+            reader soFar soFar.Length
+        else
+            let c = next.KeyChar
+            if not (Char.IsControl c) then
+                cursor false
+                Console.Write (string c + soFar.[pos..])
+                let nextPos = pos + 1
+                let nextSoFar = soFar.[0..pos-1] + string c + soFar.[pos..]
+                reader nextSoFar nextPos
+            else
+                reader soFar pos
+    String.Concat (reader "" 0)
+            
 
 // Mutable version of parts above, done with a loop instead of recursion.
 (*

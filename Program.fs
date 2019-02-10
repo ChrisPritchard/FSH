@@ -11,7 +11,7 @@ let main _ =
     defaultColour ()
     printfn "For a list of commands type '?' or 'help'"
 
-    /// prints the default prompt ('FSH' plus the working dir) and waits for input from the user
+    /// Prints the default prompt ('FSH' plus the working dir) and waits for input from the user.
     let prompt () = 
         colour "Magenta"
         printf "FSH %s> " (currentDir ())
@@ -21,7 +21,7 @@ let main _ =
         cursor false
         read
    
-    /// attempts to run an executable (not a built in like cd or dir) and to feed the result to the output
+    /// Attempts to run an executable (not a built in like cd or dir) and to feed the result to the output.
     let launchProcess fileName args =
         let op = 
             new ProcessStartInfo(fileName, args |> List.map (sprintf "\"%s\"") |> String.concat " ",
@@ -43,29 +43,29 @@ let main _ =
             op.WaitForExit ()
             op.CancelOutputRead ()
         with
-            | :? Win32Exception as ex -> // even on linux, this is the exception thrown
+            | :? Win32Exception as ex -> // Even on linux/osx, this is the exception thrown.
                 colour "Red"
                 printfn "%s: %s" fileName ex.Message
 
-    /// tries to follow what the user is wanting to do: run a builtin, or execute a process for example
+    /// Tries to follow what the user is wanting to do: run a builtin, or execute a process for example.
     let processCommand (s : string) =
         if s.Length = 0 then () // no command so just loop
         else 
             let parts = parts s
             let command = parts.[0]
 
-            // help (or ?) are special builtins, not part of the main builtin map (due to loading order)
+            // Help (or ?) are special builtins, not part of the main builtin map (due to loading order).
             if command = "help" || command = "?" then
                 help parts.[1..]
             else
                 match Map.tryFind command builtins with
                 | Some (f, _) -> 
                     f parts.[1..]
-                | None -> // if no builtin is found, try to run the users input as a execute process command
+                | None -> // If no builtin is found, try to run the users input as a execute process command.
                     launchProcess command parts.[1..]
 
-    /// the coreloop waits for input, runs that input, and repeats. 
-    /// it also handles the special exit command, quiting the loop and thus the process.
+    /// The coreloop waits for input, runs that input, and repeats. 
+    /// It also handles the special exit command, quiting the loop and thus the process.
     let rec coreLoop () =
         let entered = prompt ()
         if entered.Trim() = "exit" then ()

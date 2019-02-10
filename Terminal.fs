@@ -1,19 +1,19 @@
-﻿/// helpers for console interaction: setting colours, parsing input into tokens etc.
+﻿/// Helpers for console interaction: setting colours, parsing input into tokens etc.
 module Terminal
 
 open System
 open System.IO
 
-/// The starting console colour, before it is overriden by prompts, outputs and help for example
+/// The starting console colour, before it is overriden by prompts, outputs and help for example.
 let originalColour = ConsoleColor.Gray
 
-/// Resets the interface to use the default font colour
+/// Resets the interface to use the default font colour.
 let defaultColour () = 
     Console.ForegroundColor <- originalColour
 
-/// sets the console foreground colour (font colour) to the colour specified by the given string
+/// Sets the console foreground colour (font colour) to the colour specified by the given string,
 /// e.g. colour "Red" will set the foreground to ConsoleColor.Red.
-/// string parsing is only used because its more concise than using the built in enum
+/// String parsing is only used because its more concise than using the built in enum accessor.
 let colour s = 
     let consoleColour = Enum.Parse (typeof<ConsoleColor>, s, true) :?> ConsoleColor
     Console.ForegroundColor <- consoleColour
@@ -25,12 +25,12 @@ let cursor b = Console.CursorVisible <- b
 /// Returns the current process directory. By default this is where it was started, and can be changed with the cd builtin.
 let currentDir () = Directory.GetCurrentDirectory ()
 
-/// splits up a string into tokens, accounting for escaped spaces and quote wrapping.
-/// e.g. '"hello" world "this is a" test\ test' would be processed as ["hello";"world";"this is a";"test test"]
+/// Splits up a string into tokens, accounting for escaped spaces and quote wrapping,
+/// e.g. '"hello" world "this is a" test\ test' would be processed as ["hello";"world";"this is a";"test test"].
 let parts s =
-    // the internal recursive function processes the input one char at a time
-    // via a list computation expression, this affords a good deal of control over the output
-    // a slightly simpler way of doing this could be to use a loop with mutables, a commented out version of which is below
+    // The internal recursive function processes the input one char at a time via a list computation expression. 
+    // This affords a good deal of control over the output, and is functional/immutable.
+    // A slightly simpler way of doing this would be to use a loop with mutables; a commented out version of such an approach is below.
     let rec parts soFar quoted last remainder = 
         [
             if remainder = "" then yield soFar
@@ -50,10 +50,10 @@ let parts s =
         ]
     parts "" false ' ' s
 
-/// reads a line of input from the user, enhanced for automatic tabbing and the like
+/// Reads a line of input from the user, enhanced for automatic tabbing and the like.
 let readLine () = Console.ReadLine ()
 
-// mutable version of parts above, done with a loop instead of recursion.
+// Mutable version of parts above, done with a loop instead of recursion.
 (*
 let parts s = 
     [

@@ -1,6 +1,6 @@
-﻿/// all builtins are defined and aggregated here. 
-/// a builtin is a custom command that provides a shell function, e.g. cd which changes the shells current directory
-/// the builtins are each a custom function that takes the input arguments, and are all linked together (along with their help text) in the final 'builtin' map
+﻿/// All builtins are defined and aggregated here. 
+/// A builtin is a custom command that provides a shell function, e.g. cd which changes the shells current directory.
+/// The builtins are each a custom function that takes the input arguments, and are all linked together (along with their help text) in the final 'builtin' map.
 module Builtins
 
 open System.IO
@@ -151,16 +151,16 @@ let builtins =
         "mv", (mv, "moves the source file to the destination folder or filepath")
         "rm", (rm, "same as del, deletes the target file or empty directory")
         "del", (rm, "same as rm, deletes the target file or empty directory")
-        // the following three special builtins are here so that help can access their content
-        // however they have no implementation, as they are invoked by the coreloop and processCommand methods 
-        // in Program.fs rather than via the normal builtin execution process
+        // The following three special builtins are here so that help can access their content.
+        // However they have no implementation, as they are invoked by the coreloop and processCommand methods 
+        // in Program.fs rather than via the normal builtin execution process.
         "?", ((fun _ -> ()), "same as help, prints this page, or the help of specific commands")
         "help", ((fun _ -> ()), "same as ?, prints this page, or the help of specific commands")
         "exit", ((fun _ -> ()), "exits FSH")
     ] |> Map.ofList<string, (string list -> unit) * string>
 
-/// help provides helptext for a given builtin (including itself)
-/// it is defined after the builtin map, as it needs to read from the map to perform its function
+/// Help provides helptext for a given builtin (including itself).
+/// It is defined after the builtin map, as it needs to read from the map to perform its function.
 let help args = 
     if List.isEmpty args then
         printfn "\nThe following builtin commands are supported by FSH:\n"

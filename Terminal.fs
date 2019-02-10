@@ -1,4 +1,5 @@
-﻿module Terminal
+﻿/// helpers for console interaction: setting colours, parsing input into tokens etc.
+module Terminal
 
 open System
 open System.IO

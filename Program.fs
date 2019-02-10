@@ -20,27 +20,7 @@ let main _ =
         let read = readLine ()
         cursor false
         read
-
-    let parts s =
-        let rec parts soFar quoted last remainder = 
-            [
-                if remainder = "" then yield soFar
-                else
-                    let c, next = remainder.[0], remainder.[1..]
-                    match c with
-                    | '\"' when soFar = "" -> 
-                        yield! parts soFar true last next
-                    | '\"' when last <> '\\' && quoted ->
-                        yield soFar
-                        yield! parts "" false last next
-                    | ' ' when last <> '\\' && not quoted ->
-                        if soFar <> "" then yield soFar
-                        yield! parts "" quoted last next
-                    | _ -> 
-                        yield! parts (soFar + string c) quoted c next
-            ]
-        parts "" false ' ' s
-    
+   
     let launchProcess fileName args =
         let op = 
             new ProcessStartInfo(fileName, args |> List.map (sprintf "\"%s\"") |> String.concat " ",

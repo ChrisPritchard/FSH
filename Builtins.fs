@@ -1,4 +1,7 @@
-﻿module Builtins
+﻿/// all builtins are defined and aggregated here. 
+/// a builtin is a custom command that provides a shell function, e.g. cd which changes the shells current directory
+/// the builtins are each a custom function that takes the input arguments, and are all linked together (along with their help text) in the final 'builtin' map
+module Builtins
 
 open System.IO
 open Terminal
@@ -143,16 +146,21 @@ let builtins =
         "clear", (clear, "clears the console")
         "mkdir", (mkdir, "creates a new directory at the position specified by the first argument")
         "rmdir", (rmdir, "removes an empty directory at the position specified by the first argument")
-        "?", ((fun _ -> ()), "same as help, prints this page, or the help of specific commands")
-        "help", ((fun _ -> ()), "same as ?, prints this page, or the help of specific commands")
-        "exit", ((fun _ -> ()), "exits FSH")
         "cat", (cat, "prints the contents of the file specified to the output")
         "cp", (cp, "copies the source file to the destination folder or filepath")
         "mv", (mv, "moves the source file to the destination folder or filepath")
         "rm", (rm, "same as del, deletes the target file or empty directory")
         "del", (rm, "same as rm, deletes the target file or empty directory")
+        // the following three special builtins are here so that help can access their content
+        // however they have no implementation, as they are invoked by the coreloop and processCommand methods 
+        // in Program.fs rather than via the normal builtin execution process
+        "?", ((fun _ -> ()), "same as help, prints this page, or the help of specific commands")
+        "help", ((fun _ -> ()), "same as ?, prints this page, or the help of specific commands")
+        "exit", ((fun _ -> ()), "exits FSH")
     ] |> Map.ofList<string, (string list -> unit) * string>
 
+/// help provides helptext for a given builtin (including itself)
+/// it is defined after the builtin map, as it needs to read from the map to perform its function
 let help args = 
     if List.isEmpty args then
         printfn "\nThe following builtin commands are supported by FSH:\n"

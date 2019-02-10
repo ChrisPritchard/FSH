@@ -115,7 +115,24 @@ let mv args =
                 let fileName = Path.GetFileName source
                 let dest = Path.Combine(dest, fileName)
                 File.Move (source, dest)
-                printfn "file moved"                
+                printfn "file moved"     
+                
+let rm args =
+    if List.isEmpty args then
+        printfn "no target specified"
+    else
+        let target = Path.Combine(currentDir(), args.[0])
+        if File.Exists target then
+            File.Delete target
+            printfn "file deleted"
+        else if Directory.Exists target then
+            if not (Array.isEmpty (Directory.GetFiles target)) then
+                printf "directory is not empty"
+            else
+                Directory.Delete target
+                printfn "directory deleted"
+        else
+            printfn "file or directory does not exist"
 
 let builtins = 
     [
@@ -132,6 +149,8 @@ let builtins =
         "cat", (cat, "prints the contents of the file specified to the output")
         "cp", (cp, "copies the source file to the destination folder or filepath")
         "mv", (mv, "moves the source file to the destination folder or filepath")
+        "rm", (rm, "same as del, deletes the target file or empty directory")
+        "del", (rm, "same as rm, deletes the target file or empty directory")
     ] |> Map.ofList<string, (string list -> unit) * string>
 
 let help args = 

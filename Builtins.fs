@@ -1,11 +1,16 @@
-﻿/// All builtins are defined and aggregated here. 
+﻿/// All builtins are defined and aggregated here.
 /// A builtin is a custom command that provides a shell function, e.g. cd which changes the shells current directory.
-/// The builtins are each a custom function that takes the input arguments, and are all linked together (along with their help text) in the final 'builtin' map.
+/// The builtins are each a custom function that takes input arguments.
+/// The final 'builtin' list exposes these functions and the command that invokes them (usually the same, but there are synonyms like ? for help) 
+/// to the processCommand function in Program.fs
 module Builtins
 
+open System
 open System.IO
 open Terminal
-open System
+
+let clear _ = 
+    Console.Clear ()
 
 let echo args = 
     printfn "%s" (String.concat " " args)
@@ -36,10 +41,7 @@ let cd args =
             Directory.SetCurrentDirectory(newPath)
         else
             printfn "directory not found"
-
-let clear _ = 
-    Console.Clear ()
-
+            
 let mkdir args =
     if List.isEmpty args then
         printfn "no directory name speciifed"
@@ -139,11 +141,11 @@ let rm args =
 
 let builtins = 
     [
+        "clear", (clear, "clears the console")
         "echo", (echo, "prints out all text following the echo command to output")
         "dir", (dir, "same as ls, will list all files and directories. arguments are [path] [searchPattern], both optional")
         "ls", (dir, "same as dir, will list all files and directories. arguments are [path] [searchPattern], both optional")
         "cd", (cd, "changes the current directory to the directory specified by the first argument")
-        "clear", (clear, "clears the console")
         "mkdir", (mkdir, "creates a new directory at the position specified by the first argument")
         "rmdir", (rmdir, "removes an empty directory at the position specified by the first argument")
         "cat", (cat, "prints the contents of the file specified to the output")
@@ -154,21 +156,26 @@ let builtins =
         // The following three special builtins are here so that help can access their content.
         // However they have no implementation, as they are invoked by the coreloop and processCommand methods 
         // in Program.fs rather than via the normal builtin execution process.
-        "?", ((fun _ -> ()), "same as help, prints this page, or the help of specific commands")
-        "help", ((fun _ -> ()), "same as ?, prints this page, or the help of specific commands")
+        "?", ((fun _ -> ()), "same as help, prints the builtin list, or the help of specific commands")
+        "help", ((fun _ -> ()), "same as ?, prints the builtin list, or the help of specific commands")
         "exit", ((fun _ -> ()), "exits FSH")
-    ] |> Map.ofList<string, (string list -> unit) * string>
+    ]
+let builtinMap = 
+    builtins 
+    |> List.map (fun (commandName, (implementation, _)) -> commandName, implementation) 
+    |> Map.ofList
 
 /// Help provides helptext for a given builtin (including itself).
 /// It is defined after the builtin map, as it needs to read from the map to perform its function.
 let help args = 
     if List.isEmpty args then
         printfn "\nThe following builtin commands are supported by FSH:\n"
-        builtins |> Map.toList |> List.sortBy fst |> List.iter (fun (n, _) -> printfn "\t%s" n)
+        builtins |> List.iter (fun (n, _) -> printfn "\t%s" n)
         printfn "\nFor further info on a command, use help [command name] [command name2] etc, e.g. 'help echo'\n"
     else
         args 
-        |> List.choose (fun a -> 
-            Map.tryFind a builtins |> Option.bind (fun d -> Some (a, d)))
-        |> List.iter (fun (n, (_, s)) -> 
-            printfn "%s: %s" n s)
+        |> List.choose (fun commandName -> 
+            List.tryFind (fun item -> fst item = commandName) builtins 
+            |> Option.bind (fun (_, (_, helpText)) -> Some (commandName, helpText)))
+        |> List.iter (fun result -> 
+            result ||> printfn "%s: %s")

@@ -58,8 +58,8 @@ let main _ =
             if command = "help" || command = "?" then
                 help parts.[1..]
             else
-                match Map.tryFind command builtins with
-                | Some (f, _) -> 
+                match Map.tryFind command builtinMap with
+                | Some f -> 
                     f parts.[1..]
                 | None -> // If no builtin is found, try to run the users input as a execute process command.
                     launchProcess command parts.[1..]

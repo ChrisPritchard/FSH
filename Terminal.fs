@@ -3,6 +3,7 @@ module Terminal
 
 open System
 open Builtins
+open System.IO
 
 /// The starting console colour, before it is overriden by prompts, outputs and help for example.
 let originalColour = ConsoleColor.Gray
@@ -52,6 +53,29 @@ let parts s =
 /// the rest of the console readline functionality, like arrows and backspace.
 let readLine () = 
     let start = Console.CursorLeft
+
+    let common candidates =
+        ""
+
+    let attemptTabCompletion soFar pos = 
+        let last = parts soFar |> List.last
+        let directory = Path.GetDirectoryName (Path.Combine(currentDir (), last))
+
+        let files = Directory.GetFiles directory |> Array.map Path.GetFileName |> Array.toList
+        let folders = Directory.GetDirectories directory |> Array.map Path.GetFileName |> Array.toList
+        let allOptions = files @ folders @ List.map fst builtins
+
+        let candidates = allOptions |> List.filter (fun n -> n.ToLower().StartsWith(last.ToLower()))
+
+        if candidates.Length = 0 then 
+            soFar, pos // no change
+        elif candidates.Length = 1 then
+            let matched = if candidates.Length = 1 then candidates.[0] else common candidates
+            let newPart = matched.Substring last.Length
+            (soFar + newPart), (pos + newPart.Length)
+        else
+            soFar, pos
+
     let rec reader (soFar: string) pos =
         // By printing out the current content of the line after every char
         // implementing backspace and delete becomes easier.
@@ -79,18 +103,8 @@ let readLine () =
         elif next.Key = ConsoleKey.End then
             reader soFar soFar.Length
         elif next.Key = ConsoleKey.Tab && soFar <> "" then 
-            let last = parts soFar |> List.last
-            let candidates = 
-                builtins 
-                |> List.filter (fun (n, _) -> n.StartsWith(last)) 
-                |> List.map fst
-            if candidates.Length = 0 then 
-                reader soFar pos
-            elif candidates.Length = 1 then
-                let newPart = candidates.[0].Substring(last.Length)
-                reader (soFar + newPart) (pos + newPart.Length)
-            else
-                reader soFar pos
+            let (soFar, pos) = attemptTabCompletion soFar pos
+            reader soFar pos
         else
             let c = next.KeyChar
             if not (Char.IsControl c) then

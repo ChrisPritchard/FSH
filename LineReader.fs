@@ -43,45 +43,47 @@ let private attemptTabCompletion soFar pos =
         let soFar = soFar.[0..pos-last.Length-1] + matched
         soFar, soFar.Length
 
-/// This recursively prompts for input from the user, producing a final string result on the reception of the Enter key.
-let rec private reader start (soFar: string) pos =
-    // By printing out the current content of the line after every char
-    // implementing backspace and delete becomes easier.
-    cursor false
-    Console.CursorLeft <- start
-    printf "%s%s" soFar (new String(' ', Console.WindowWidth - start - soFar.Length - 1))
-    Console.CursorLeft <- start + pos
-    cursor true
-
-    // blocks here until a key is read
-    let next = Console.ReadKey true
-
-    if next.Key = ConsoleKey.Enter then
-        printfn "" // write a final newline
-        soFar
-    elif next.Key = ConsoleKey.Backspace && Console.CursorLeft <> start then
-        reader start (soFar.[0..pos-2] + soFar.[pos..]) (max 0 (pos - 1))
-    elif next.Key = ConsoleKey.Delete then 
-        reader start (soFar.[0..pos-1] + soFar.[pos+1..]) pos
-    elif next.Key = ConsoleKey.LeftArrow then
-        reader start soFar (max 0 (pos - 1))
-    elif next.Key = ConsoleKey.RightArrow then
-        reader start soFar (min soFar.Length (pos + 1))
-    elif next.Key = ConsoleKey.Home then
-        reader start soFar 0
-    elif next.Key = ConsoleKey.End then
-        reader start soFar soFar.Length
-    elif next.Key = ConsoleKey.Tab && soFar <> "" then 
-        let (soFar, pos) = attemptTabCompletion soFar pos
-        reader start soFar pos
-    else
-        let c = next.KeyChar
-        if not (Char.IsControl c) then
-            reader start (soFar.[0..pos-1] + string c + soFar.[pos..]) (pos + 1)
-        else
-            reader start soFar pos
-
 /// Reads a line of input from the user, enhanced for automatic tabbing and the like.
-let readLine () = 
+let readLine prior = 
     let start = Console.CursorLeft
-    reader start "" 0
+
+    // This recursively prompts for input from the user, producing a final string result on the reception of the Enter key.
+    let rec reader prior priorIndex (soFar: string) pos =
+        // By printing out the current content of the line after every char
+        // implementing backspace and delete becomes easier.
+        cursor false
+        Console.CursorLeft <- start
+        printf "%s%s" soFar (new String(' ', Console.WindowWidth - start - soFar.Length - 1))
+        Console.CursorLeft <- start + pos
+        cursor true
+
+        // blocks here until a key is read
+        let next = Console.ReadKey true
+
+        match next.Key with
+        | ConsoleKey.Enter ->
+            printfn "" // write a final newline
+            soFar
+        | ConsoleKey.Backspace when Console.CursorLeft <> start ->
+            reader prior priorIndex (soFar.[0..pos-2] + soFar.[pos..]) (max 0 (pos - 1))
+        | ConsoleKey.Delete ->
+            reader prior priorIndex (soFar.[0..pos-1] + soFar.[pos+1..]) pos
+        | ConsoleKey.LeftArrow ->
+            reader prior priorIndex soFar (max 0 (pos - 1))
+        | ConsoleKey.RightArrow ->
+            reader prior priorIndex soFar (min soFar.Length (pos + 1))
+        | ConsoleKey.Home ->
+            reader prior priorIndex soFar 0
+        | ConsoleKey.End ->
+            reader prior priorIndex soFar soFar.Length
+        | ConsoleKey.Tab when soFar <> "" ->
+            let (soFar, pos) = attemptTabCompletion soFar pos
+            reader prior priorIndex soFar pos
+        | _ ->
+            let c = next.KeyChar
+            if not (Char.IsControl c) then
+                reader prior priorIndex (soFar.[0..pos-1] + string c + soFar.[pos..]) (pos + 1)
+            else
+                reader prior priorIndex soFar pos
+
+    reader prior 0 "" 0

@@ -13,12 +13,12 @@ let main _ =
     printfn "For a list of commands type '?' or 'help'"
 
     /// Prints the default prompt ('FSH' plus the working dir) and waits for input from the user.
-    let prompt () = 
+    let prompt prior = 
         colour "Magenta"
         printf "FSH %s> " (currentDir ())
         cursor true
         defaultColour ()
-        let read = readLine ()
+        let read = readLine prior
         cursor false
         read
    
@@ -67,13 +67,13 @@ let main _ =
 
     /// The coreloop waits for input, runs that input, and repeats. 
     /// It also handles the special exit command, quiting the loop and thus the process.
-    let rec coreLoop () =
-        let entered = prompt ()
+    let rec coreLoop prior =
+        let entered = prompt prior
         if entered.Trim() = "exit" then ()
         else
             processCommand entered
-            coreLoop ()
+            coreLoop (entered::prior)
 
-    coreLoop ()
+    coreLoop []
 
     0

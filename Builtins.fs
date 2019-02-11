@@ -7,7 +7,9 @@ module Builtins
 
 open System
 open System.IO
-open Terminal
+
+/// Returns the current process directory. By default this is where it was started, and can be changed with the cd builtin.
+let currentDir () = Directory.GetCurrentDirectory ()
 
 let clear _ = 
     Console.Clear ()

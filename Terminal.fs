@@ -2,8 +2,7 @@
 module Terminal
 
 open System
-open System.IO
-open System
+open Builtins
 
 /// The starting console colour, before it is overriden by prompts, outputs and help for example.
 let originalColour = ConsoleColor.Gray
@@ -22,9 +21,6 @@ let colour s =
 /// Controls cursor visibility. 
 /// The cursor should only be visible when accepting input from the user, and not when drawing the prompt, for example.
 let cursor b = Console.CursorVisible <- b
-
-/// Returns the current process directory. By default this is where it was started, and can be changed with the cd builtin.
-let currentDir () = Directory.GetCurrentDirectory ()
 
 /// Splits up a string into tokens, accounting for escaped spaces and quote wrapping,
 /// e.g. '"hello" world "this is a" test\ test' would be processed as ["hello";"world";"this is a";"test test"].
@@ -82,6 +78,19 @@ let readLine () =
             reader soFar 0
         elif next.Key = ConsoleKey.End then
             reader soFar soFar.Length
+        elif next.Key = ConsoleKey.Tab && soFar <> "" then 
+            let last = parts soFar |> List.last
+            let candidates = 
+                builtins 
+                |> List.filter (fun (n, _) -> n.StartsWith(last)) 
+                |> List.map fst
+            if candidates.Length = 0 then 
+                reader soFar pos
+            elif candidates.Length = 1 then
+                let newPart = candidates.[0].Substring(last.Length)
+                reader (soFar + newPart) (pos + newPart.Length)
+            else
+                reader soFar pos
         else
             let c = next.KeyChar
             if not (Char.IsControl c) then

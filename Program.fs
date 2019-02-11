@@ -7,6 +7,7 @@ open System.ComponentModel
 open Terminal
 open Builtins
 open LineReader
+open Interactive
 
 [<EntryPoint>]
 let main _ =
@@ -77,6 +78,10 @@ let main _ =
         else
             processCommand entered
             coreLoop (entered::prior)
+    
+    let fsi = new Fsi ()
+    let result = fsi.EvalExpression("10");
+    let result2 = fsi.EvalExpression("let x () = 12 in x ()")
 
     coreLoop []
 

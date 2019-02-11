@@ -11,7 +11,12 @@
     <Compile Include="Builtins.fs" />
     <Compile Include="Terminal.fs" />
     <Compile Include="LineReader.fs" />
+    <Compile Include="Interactive.fs" />
     <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FSharp.Compiler.Service" Version="26.0.1" />
   </ItemGroup>
 
 </Project>

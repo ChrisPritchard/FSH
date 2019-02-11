@@ -1,12 +1,12 @@
-﻿open Terminal
-open Builtins
-open LineReader
-/// The core shell loop is defined and run here.
+﻿/// The core shell loop is defined and run here.
 /// It prompts the user for input, then processes the result before repeating.
 /// In addition, some ancillary functions like process launching are also defined.
 
 open System.Diagnostics
 open System.ComponentModel
+open Terminal
+open Builtins
+open LineReader
 
 [<EntryPoint>]
 let main _ =

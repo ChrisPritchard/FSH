@@ -15,7 +15,7 @@ let private common startIndex (candidates : string list) =
     let uncommonPoint = 
         [startIndex..Console.WindowWidth]
         |> List.find (fun i ->
-            if i = candidates.[0].Length then true
+            if i >= candidates.[0].Length then true
             else 
                 let charAt = candidates.[0].[i]
                 List.tryFind (fun (c : string) -> 
@@ -27,8 +27,8 @@ let private common startIndex (candidates : string list) =
 /// If multiple candidates are found, only the common content is returned.
 let private attemptTabCompletion soFar pos = 
     let last = parts soFar |> List.last
-    let beforeLast = soFar.[0..pos-last.Length-1]
-    let directory = Path.GetDirectoryName (Path.Combine(currentDir (), last))
+    let asPath = Path.Combine(currentDir (), last)
+    let directory = Path.GetDirectoryName asPath
 
     let files = Directory.GetFiles directory |> Array.map Path.GetFileName |> Array.toList
     let folders = Directory.GetDirectories directory |> Array.map Path.GetFileName |> Array.toList
@@ -40,8 +40,8 @@ let private attemptTabCompletion soFar pos =
         soFar, pos // no change
     else
         let matched = if candidates.Length = 1 then candidates.[0] else common last.Length candidates
-        let newPart = matched.[last.Length..]
-        beforeLast + matched, (pos + newPart.Length)
+        let soFar = soFar.[0..pos-last.Length-1] + matched
+        soFar, soFar.Length
 
 /// This recursively prompts for input from the user, producing a final string result on the reception of the Enter key.
 let rec private reader start (soFar: string) pos =
@@ -53,7 +53,8 @@ let rec private reader start (soFar: string) pos =
     Console.CursorLeft <- start + pos
     cursor true
 
-    let next = Console.ReadKey(true)
+    // blocks here until a key is read
+    let next = Console.ReadKey true
 
     if next.Key = ConsoleKey.Enter then
         printfn "" // write a final newline

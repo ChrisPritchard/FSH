@@ -2,8 +2,6 @@
 module Terminal
 
 open System
-open Builtins
-open System.IO
 
 /// The starting console colour, before it is overriden by prompts, outputs and help for example.
 let originalColour = ConsoleColor.Gray

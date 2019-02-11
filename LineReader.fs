@@ -44,7 +44,8 @@ let private attemptTabCompletion soFar pos =
         soFar, soFar.Length
 
 /// Reads a line of input from the user, enhanced for automatic tabbing and the like.
-let readLine prior = 
+/// Prior is a list of prior input lines, used for history navigation
+let readLine (prior: string list) = 
     let start = Console.CursorLeft
 
     // This recursively prompts for input from the user, producing a final string result on the reception of the Enter key.
@@ -66,17 +67,28 @@ let readLine prior =
             printfn "" // write a final newline
             soFar
         | ConsoleKey.Backspace when Console.CursorLeft <> start ->
-            reader priorIndex (soFar.[0..pos-2] + soFar.[pos..]) (max 0 (pos - 1))
+            let nextSoFar = soFar.[0..pos-2] + soFar.[pos..]
+            let nextPos = max 0 (pos - 1)
+            reader priorIndex nextSoFar nextPos
         | ConsoleKey.Delete ->
-            reader priorIndex (soFar.[0..pos-1] + soFar.[pos+1..]) pos
+            let nextSoFar = soFar.[0..pos-1] + soFar.[pos+1..]
+            reader priorIndex nextSoFar pos
         | ConsoleKey.LeftArrow ->
-            reader priorIndex soFar (max 0 (pos - 1))
+            let nextPos = max 0 (pos - 1)
+            reader priorIndex soFar nextPos
         | ConsoleKey.RightArrow ->
-            reader priorIndex soFar (min soFar.Length (pos + 1))
+            let nextPos = min soFar.Length (pos + 1)
+            reader priorIndex soFar nextPos
         | ConsoleKey.UpArrow when priorIndex < List.length prior - 1 ->
-            reader (priorIndex + 1) prior.[priorIndex + 1] prior.[priorIndex + 1].Length
+            let nextIndex = priorIndex + 1
+            let nextSoFar = prior.[nextIndex]
+            let nextPos = nextSoFar.Length
+            reader nextIndex nextSoFar nextPos
         | ConsoleKey.DownArrow when priorIndex > 0 ->
-            reader (priorIndex - 1) prior.[priorIndex - 1] prior.[priorIndex - 1].Length
+            let nextIndex = priorIndex - 1
+            let nextSoFar = prior.[nextIndex]
+            let nextPos = nextSoFar.Length
+            reader nextIndex nextSoFar nextPos
         | ConsoleKey.Home ->
             reader priorIndex soFar 0
         | ConsoleKey.End ->

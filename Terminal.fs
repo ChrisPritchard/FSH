@@ -57,22 +57,23 @@ let parts s =
 let readLine () = 
     let start = Console.CursorLeft
     let rec reader (soFar: string) pos =
+        // By printing out the current content of the line after every char
+        // implementing backspace and delete becomes easier.
         cursor false
         Console.CursorLeft <- start
         printf "%s%s" soFar (new String(' ', Console.WindowWidth - start - soFar.Length - 1))
         Console.CursorLeft <- start + pos
         cursor true
+
         let next = Console.ReadKey(true)
+
         if next.Key = ConsoleKey.Enter then
-            Console.WriteLine()
+            printfn "" // write a final newline
             soFar
         elif next.Key = ConsoleKey.Backspace && Console.CursorLeft <> start then
-            let soFar = soFar.[0..pos-2] + soFar.[pos..]
-            let pos = max 0 (pos - 1)
-            reader soFar pos
+            reader (soFar.[0..pos-2] + soFar.[pos..]) (max 0 (pos - 1))
         elif next.Key = ConsoleKey.Delete then 
-            let soFar = soFar.[0..pos-1] + soFar.[pos+1..]
-            reader soFar pos
+            reader (soFar.[0..pos-1] + soFar.[pos+1..]) pos
         elif next.Key = ConsoleKey.LeftArrow then
             reader soFar (max 0 (pos - 1))
         elif next.Key = ConsoleKey.RightArrow then
@@ -84,12 +85,11 @@ let readLine () =
         else
             let c = next.KeyChar
             if not (Char.IsControl c) then
-                let nextPos = pos + 1
-                let nextSoFar = soFar.[0..pos-1] + string c + soFar.[pos..]
-                reader nextSoFar nextPos
+                reader (soFar.[0..pos-1] + string c + soFar.[pos..]) (pos + 1)
             else
                 reader soFar pos
-    String.Concat (reader "" 0)
+
+    reader "" 0
             
 
 // Mutable version of parts above, done with a loop instead of recursion.

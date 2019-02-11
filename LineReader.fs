@@ -48,7 +48,8 @@ let readLine prior =
     let start = Console.CursorLeft
 
     // This recursively prompts for input from the user, producing a final string result on the reception of the Enter key.
-    let rec reader prior priorIndex (soFar: string) pos =
+    let rec reader priorIndex (soFar: string) pos =
+
         // By printing out the current content of the line after every char
         // implementing backspace and delete becomes easier.
         cursor false
@@ -65,25 +66,29 @@ let readLine prior =
             printfn "" // write a final newline
             soFar
         | ConsoleKey.Backspace when Console.CursorLeft <> start ->
-            reader prior priorIndex (soFar.[0..pos-2] + soFar.[pos..]) (max 0 (pos - 1))
+            reader priorIndex (soFar.[0..pos-2] + soFar.[pos..]) (max 0 (pos - 1))
         | ConsoleKey.Delete ->
-            reader prior priorIndex (soFar.[0..pos-1] + soFar.[pos+1..]) pos
+            reader priorIndex (soFar.[0..pos-1] + soFar.[pos+1..]) pos
         | ConsoleKey.LeftArrow ->
-            reader prior priorIndex soFar (max 0 (pos - 1))
+            reader priorIndex soFar (max 0 (pos - 1))
         | ConsoleKey.RightArrow ->
-            reader prior priorIndex soFar (min soFar.Length (pos + 1))
+            reader priorIndex soFar (min soFar.Length (pos + 1))
+        | ConsoleKey.UpArrow when priorIndex < List.length prior - 1 ->
+            reader (priorIndex + 1) prior.[priorIndex + 1] prior.[priorIndex + 1].Length
+        | ConsoleKey.DownArrow when priorIndex > 0 ->
+            reader (priorIndex - 1) prior.[priorIndex - 1] prior.[priorIndex - 1].Length
         | ConsoleKey.Home ->
-            reader prior priorIndex soFar 0
+            reader priorIndex soFar 0
         | ConsoleKey.End ->
-            reader prior priorIndex soFar soFar.Length
+            reader priorIndex soFar soFar.Length
         | ConsoleKey.Tab when soFar <> "" ->
             let (soFar, pos) = attemptTabCompletion soFar pos
-            reader prior priorIndex soFar pos
+            reader priorIndex soFar pos
         | _ ->
             let c = next.KeyChar
             if not (Char.IsControl c) then
-                reader prior priorIndex (soFar.[0..pos-1] + string c + soFar.[pos..]) (pos + 1)
+                reader priorIndex (soFar.[0..pos-1] + string c + soFar.[pos..]) (pos + 1)
             else
-                reader prior priorIndex soFar pos
+                reader priorIndex soFar pos
 
-    reader prior 0 "" 0
+    reader -1 "" 0

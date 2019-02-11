@@ -1,6 +1,9 @@
 ﻿open Terminal
 open Builtins
 open LineReader
+/// The core shell loop is defined and run here.
+/// It prompts the user for input, then processes the result before repeating.
+/// In addition, some ancillary functions like process launching are also defined.
 
 open System.Diagnostics
 open System.ComponentModel
@@ -12,17 +15,18 @@ let main _ =
     defaultColour ()
     printfn "For a list of commands type '?' or 'help'"
 
-    /// Prints the default prompt ('FSH' plus the working dir) and waits for input from the user.
+    /// Prints the prompt ('FSH' plus the working dir) and waits for then accepts input from the user.
     let prompt prior = 
         colour "Magenta"
         printf "FSH %s> " (currentDir ())
         cursor true
         defaultColour ()
+        // Here is called a special function from LineReader.fs that accepts tabs and the like.
         let read = readLine prior
         cursor false
         read
    
-    /// Attempts to run an executable (not a built in like cd or dir) and to feed the result to the output.
+    /// Attempts to run an executable (not a builtin like cd or dir) and to feed the result to the output.
     let launchProcess fileName args =
         let op = 
             new ProcessStartInfo(fileName, args |> List.map (sprintf "\"%s\"") |> String.concat " ",

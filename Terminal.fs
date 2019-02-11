@@ -52,9 +52,14 @@ let parts s =
     parts "" false ' ' s
 
 /// Reads a line of input from the user, enhanced for automatic tabbing and the like.
+/// As tab completion requires we intercept the readkey, we therefore need to implement
+/// the rest of the console readline functionality, like arrows and backspace.
 let readLine () = 
     let start = Console.CursorLeft
     let rec reader (soFar: string) pos =
+        cursor false
+        Console.CursorLeft <- start
+        printf "%s%s" soFar (new String(' ', Console.WindowWidth - start - soFar.Length - 1))
         Console.CursorLeft <- start + pos
         cursor true
         let next = Console.ReadKey(true)
@@ -64,6 +69,9 @@ let readLine () =
         elif next.Key = ConsoleKey.Backspace && Console.CursorLeft <> start then
             let soFar = soFar.[0..pos-2] + soFar.[pos..]
             let pos = max 0 (pos - 1)
+            reader soFar pos
+        elif next.Key = ConsoleKey.Delete then 
+            let soFar = soFar.[0..pos-1] + soFar.[pos+1..]
             reader soFar pos
         elif next.Key = ConsoleKey.LeftArrow then
             reader soFar (max 0 (pos - 1))
@@ -76,8 +84,6 @@ let readLine () =
         else
             let c = next.KeyChar
             if not (Char.IsControl c) then
-                cursor false
-                Console.Write (string c + soFar.[pos..])
                 let nextPos = pos + 1
                 let nextSoFar = soFar.[0..pos-1] + string c + soFar.[pos..]
                 reader nextSoFar nextPos

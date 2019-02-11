@@ -10,6 +10,7 @@
     <None Include="README.md" />
     <Compile Include="Builtins.fs" />
     <Compile Include="Terminal.fs" />
+    <Compile Include="LineReader.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

@@ -1,5 +1,6 @@
 ﻿open Terminal
 open Builtins
+open LineReader
 
 open System.Diagnostics
 open System.ComponentModel

@@ -11,6 +11,7 @@ open Terminal
 
 /// For a set of strings, will return the common start string.
 let private common startIndex (candidates : string list) =
+    // finds the first index that is longer than a candidate or for which two or more candidates differ
     let uncommonPoint = 
         [startIndex..Console.WindowWidth]
         |> List.find (fun i ->
@@ -19,6 +20,7 @@ let private common startIndex (candidates : string list) =
                 let charAt = candidates.[0].[i]
                 List.tryFind (fun (c : string) -> 
                     c.Length = i || c.[i] <> charAt) candidates <> None)
+    // return the component prior to this found index
     candidates.[0].[0..uncommonPoint-1]
     
 /// Attempts to find the closest matching file, directory or builtin for the final path token.

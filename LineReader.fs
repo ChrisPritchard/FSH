@@ -9,11 +9,23 @@ open System.IO
 open Builtins
 open Terminal
 
-let private common candidates =
-    ""
-
+/// For a set of strings, will return the common start string.
+let private common startIndex (candidates : string list) =
+    let uncommonPoint = 
+        [startIndex..Console.WindowWidth]
+        |> List.find (fun i ->
+            if i = candidates.[0].Length then true
+            else 
+                let charAt = candidates.[0].[i]
+                List.tryFind (fun (c : string) -> 
+                    c.Length = i || c.[i] <> charAt) candidates <> None)
+    candidates.[0].[0..uncommonPoint-1]
+    
+/// Attempts to find the closest matching file, directory or builtin for the final path token.
+/// If multiple candidates are found, only the common content is returned.
 let private attemptTabCompletion soFar pos = 
     let last = parts soFar |> List.last
+    let beforeLast = soFar.[0..pos-last.Length-1]
     let directory = Path.GetDirectoryName (Path.Combine(currentDir (), last))
 
     let files = Directory.GetFiles directory |> Array.map Path.GetFileName |> Array.toList
@@ -24,13 +36,12 @@ let private attemptTabCompletion soFar pos =
 
     if candidates.Length = 0 then 
         soFar, pos // no change
-    elif candidates.Length = 1 then
-        let matched = if candidates.Length = 1 then candidates.[0] else common candidates
-        let newPart = matched.Substring last.Length
-        (soFar + newPart), (pos + newPart.Length)
     else
-        soFar, pos
+        let matched = if candidates.Length = 1 then candidates.[0] else common last.Length candidates
+        let newPart = matched.[last.Length..]
+        beforeLast + matched, (pos + newPart.Length)
 
+/// This recursively prompts for input from the user, producing a final string result on the reception of the Enter key.
 let rec private reader start (soFar: string) pos =
     // By printing out the current content of the line after every char
     // implementing backspace and delete becomes easier.

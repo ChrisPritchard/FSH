@@ -62,7 +62,9 @@ let readLine () =
             Console.WriteLine()
             soFar
         elif next.Key = ConsoleKey.Backspace && Console.CursorLeft <> start then
-            reader (soFar.[0..pos-1] + soFar.[pos+1..]) (max 0 (pos - 1))
+            let soFar = soFar.[0..pos-2] + soFar.[pos..]
+            let pos = max 0 (pos - 1)
+            reader soFar pos
         elif next.Key = ConsoleKey.LeftArrow then
             reader soFar (max 0 (pos - 1))
         elif next.Key = ConsoleKey.RightArrow then

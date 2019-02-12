@@ -30,7 +30,7 @@ let main _ =
     /// Attempts to run an executable (not a builtin like cd or dir) and to feed the result to the output.
     let launchProcess fileName args =
         let op = 
-            new ProcessStartInfo(fileName, args |> List.map (sprintf "\"%s\"") |> String.concat " ",
+            new ProcessStartInfo(fileName, args |> String.concat " ",
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true,

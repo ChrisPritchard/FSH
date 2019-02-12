@@ -36,7 +36,7 @@ let parts s =
                 | '\"' when soFar = "" -> 
                     yield! parts soFar true last next
                 | '\"' when last <> '\\' && quoted ->
-                    yield soFar
+                    yield sprintf "\"%s\"" soFar
                     yield! parts "" false last next
                 | ' ' when last <> '\\' && not quoted ->
                     if soFar <> "" then yield soFar

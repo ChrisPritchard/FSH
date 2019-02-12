@@ -91,6 +91,8 @@ let main _ =
         test 23
     """
 
+    let result7 = fsi.EvalExpression "test 46"
+
     coreLoop []
 
     0

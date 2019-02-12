@@ -19,7 +19,7 @@ type Fsi () =
         FsiEvaluationSession.Create(fsiconfig, args, inReader, outReader, errorReader);
 
     member __.EvalInteraction s =
-        fsiInstance.EvalInteraction s
+        fsiInstance.EvalInteractionNonThrowing s
 
     member __.EvalExpression s =
         fsiInstance.EvalExpressionNonThrowing s

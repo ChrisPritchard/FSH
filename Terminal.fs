@@ -21,6 +21,17 @@ let colour s =
 /// The cursor should only be visible when accepting input from the user, and not when drawing the prompt, for example.
 let cursor b = Console.CursorVisible <- b
 
+type Token =
+    | Command of command:string * arguments:string
+    | Code of string
+    | Pipe of first:Token * second:Token
+    | WriteOut of from:Token * filename:string
+
+// parse response char by char? or parse into bits?
+// parsing char should:
+//     check if starting with (. If so then bracket push until final ) is found, and return as Code
+//     else parse tokens (accounting for " and escapes), until end or until |> is found
+
 /// Splits up a string into tokens, accounting for escaped spaces and quote wrapping,
 /// e.g. '"hello" world "this is a" test\ test' would be processed as ["hello";"world";"this is a";"test test"].
 let parts s =

@@ -49,15 +49,32 @@ let readLine (prior: string list) =
     let startPos = Console.CursorLeft
     let startLine = Console.CursorTop
 
+    let whitespace n = new String(' ', n)
+    /// This will render a given line aligned to the prompt
+    /// It will also print whitespace for the rest of the line, in order to 'overwrite' any existing printed text
+    let linePrinter isFirst isLast line = 
+        printf "%s%s%s%s"
+            (if isFirst then "" else whitespace startPos)
+            line 
+            (whitespace (Console.WindowWidth - startPos - line.Length - 1))
+            (if not isLast then "\r\n" else "")
+    
+    /// When using back and forth in history (up down arrows), this function is used to break up the history string into lines and last line
+    let asLines (prior: string) = 
+        let lines = 
+            prior.Split([|"\r\n"|], StringSplitOptions.RemoveEmptyEntries)
+            |> Array.toList
+        List.rev lines.[0..lines.Length-2], lines.[lines.Length-1]
+
     // This recursively prompts for input from the user, producing a final string result on the reception of the Enter key.
-    let rec reader priorIndex (soFar: string) pos =
+    let rec reader priorIndex lines (soFar: string) pos =
 
         // By printing out the current content of the line after every char
         // implementing backspace and delete becomes easier.
         cursor false
         Console.CursorLeft <- startPos
         Console.CursorTop <- startLine
-        printf "%s%s" soFar (new String(' ', Console.WindowWidth - startPos - soFar.Length - 1))
+        soFar::lines |> List.rev |> List.iteri (fun i -> linePrinter (i = 0) (i = lines.Length))
         Console.CursorLeft <- startPos + pos
         cursor true
 
@@ -67,44 +84,44 @@ let readLine (prior: string list) =
         match next.Key with
         | ConsoleKey.Enter when next.Modifiers <> ConsoleModifiers.Shift ->
             printfn "" // write a final newline
-            soFar
-        | ConsoleKey.Enter -> // TODO: implement new lines properly
-            reader priorIndex (soFar + "\r\n") startPos
+            (soFar::lines) |> List.rev |> String.concat "\r\n"
+        | ConsoleKey.Enter ->
+            reader priorIndex (soFar::lines) "" 0
         | ConsoleKey.Backspace when Console.CursorLeft <> startPos ->
             let nextSoFar = soFar.[0..pos-2] + soFar.[pos..]
             let nextPos = max 0 (pos - 1)
-            reader priorIndex nextSoFar nextPos
+            reader priorIndex lines nextSoFar nextPos
         | ConsoleKey.Delete ->
             let nextSoFar = soFar.[0..pos-1] + soFar.[pos+1..]
-            reader priorIndex nextSoFar pos
+            reader priorIndex lines nextSoFar pos
         | ConsoleKey.LeftArrow ->
             let nextPos = max 0 (pos - 1)
-            reader priorIndex soFar nextPos
+            reader priorIndex lines soFar nextPos
         | ConsoleKey.RightArrow ->
             let nextPos = min soFar.Length (pos + 1)
-            reader priorIndex soFar nextPos
+            reader priorIndex lines soFar nextPos
         | ConsoleKey.UpArrow when priorIndex < List.length prior - 1 ->
             let nextIndex = priorIndex + 1
-            let nextSoFar = prior.[nextIndex]
+            let nextLines, nextSoFar = asLines prior.[nextIndex]
             let nextPos = nextSoFar.Length
-            reader nextIndex nextSoFar nextPos
+            reader nextIndex nextLines nextSoFar nextPos
         | ConsoleKey.DownArrow when priorIndex > 0 ->
             let nextIndex = priorIndex - 1
-            let nextSoFar = prior.[nextIndex]
+            let nextLines, nextSoFar = asLines prior.[nextIndex]
             let nextPos = nextSoFar.Length
-            reader nextIndex nextSoFar nextPos
+            reader nextIndex nextLines nextSoFar nextPos
         | ConsoleKey.Home ->
-            reader priorIndex soFar 0
+            reader priorIndex lines soFar 0
         | ConsoleKey.End ->
-            reader priorIndex soFar soFar.Length
+            reader priorIndex lines soFar soFar.Length
         | ConsoleKey.Tab when soFar <> "" ->
             let (soFar, pos) = attemptTabCompletion soFar pos
-            reader priorIndex soFar pos
+            reader priorIndex lines soFar pos
         | _ ->
             let c = next.KeyChar
             if not (Char.IsControl c) then
-                reader priorIndex (soFar.[0..pos-1] + string c + soFar.[pos..]) (pos + 1)
+                reader priorIndex lines (soFar.[0..pos-1] + string c + soFar.[pos..]) (pos + 1)
             else
-                reader priorIndex soFar pos
+                reader priorIndex lines soFar pos
 
-    reader -1 "" 0
+    reader -1 [] "" 0

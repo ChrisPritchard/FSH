@@ -46,7 +46,8 @@ let private attemptTabCompletion soFar pos =
 /// Reads a line of input from the user, enhanced for automatic tabbing and the like.
 /// Prior is a list of prior input lines, used for history navigation
 let readLine (prior: string list) = 
-    let start = Console.CursorLeft
+    let startPos = Console.CursorLeft
+    let startLine = Console.CursorTop
 
     // This recursively prompts for input from the user, producing a final string result on the reception of the Enter key.
     let rec reader priorIndex (soFar: string) pos =
@@ -54,9 +55,10 @@ let readLine (prior: string list) =
         // By printing out the current content of the line after every char
         // implementing backspace and delete becomes easier.
         cursor false
-        Console.CursorLeft <- start
-        printf "%s%s" soFar (new String(' ', Console.WindowWidth - start - soFar.Length - 1))
-        Console.CursorLeft <- start + pos
+        Console.CursorLeft <- startPos
+        Console.CursorTop <- startLine
+        printf "%s%s" soFar (new String(' ', Console.WindowWidth - startPos - soFar.Length - 1))
+        Console.CursorLeft <- startPos + pos
         cursor true
 
         // blocks here until a key is read
@@ -66,9 +68,9 @@ let readLine (prior: string list) =
         | ConsoleKey.Enter when next.Modifiers <> ConsoleModifiers.Shift ->
             printfn "" // write a final newline
             soFar
-        //| ConsoleKey.Enter -> // TODO: implement new lines properly
-        //    reader priorIndex (soFar + "\n") 0
-        | ConsoleKey.Backspace when Console.CursorLeft <> start ->
+        | ConsoleKey.Enter -> // TODO: implement new lines properly
+            reader priorIndex (soFar + "\r\n") startPos
+        | ConsoleKey.Backspace when Console.CursorLeft <> startPos ->
             let nextSoFar = soFar.[0..pos-2] + soFar.[pos..]
             let nextPos = max 0 (pos - 1)
             reader priorIndex nextSoFar nextPos

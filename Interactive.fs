@@ -22,12 +22,12 @@ type Fsi () =
         FsiEvaluationSession.Create(fsiconfig, args, inReader, outReader, errorReader);
 
     /// Processes a line as if written to the CLI of a FSI session. 
-    /// Returns Unit, so can't be used for output short of reading the stream.
+    /// On success returns Unit, so can't be used for output short of reading the stream.
     member __.EvalInteraction s =
         fsiInstance.EvalInteractionNonThrowing s
 
     /// Processes an expression that must return a single value. 
-    /// Can't be used for declarations unless those are used for calculate said value.
+    /// Can't be used for declarations unless those are used to calculate said value.
     /// However can call a declaration made by EvalInteraction.
     member __.EvalExpression s =
         fsiInstance.EvalExpressionNonThrowing s

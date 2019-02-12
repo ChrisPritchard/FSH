@@ -58,7 +58,7 @@ let parts s =
             match c with
             | '\"' when soFar = "" -> quoted <- true
             | '\"' when last <> '\\' && quoted ->
-                yield soFar
+                yield sprintf "\"%s\"" soFar
                 quoted <- false
                 soFar <- ""
             | ' ' when last <> '\\' && not quoted ->

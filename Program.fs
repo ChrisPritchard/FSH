@@ -79,19 +79,19 @@ let main _ =
             processCommand entered
             coreLoop (entered::prior)
     
-    let fsi = new Fsi ()
-    let result = fsi.EvalExpression("10")
-    let result2 = fsi.EvalExpression("let x () = 12 in x ()")
-    let result3 = fsi.EvalInteraction("50")
-    //let result4 = fsi.EvalInteraction("printfn \"%i\" it")
-    let result5 = fsi.EvalExpression("it")
+    //let fsi = new Fsi ()
+    //let result = fsi.EvalExpression("10")
+    //let result2 = fsi.EvalExpression("let x () = 12 in x ()")
+    //let result3 = fsi.EvalInteraction("50")
+    ////let result4 = fsi.EvalInteraction("printfn \"%i\" it")
+    //let result5 = fsi.EvalExpression("it")
 
-    let result6 = fsi.EvalExpression """
-        let test x = x * x
-        test 23
-    """
+    //let result6 = fsi.EvalExpression """
+    //    let test x = x * x
+    //    test 23
+    //"""
 
-    let result7 = fsi.EvalExpression "test 46"
+    //let result7 = fsi.EvalExpression "test 46"
 
     coreLoop []
 

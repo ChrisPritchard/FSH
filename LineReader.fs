@@ -63,9 +63,11 @@ let readLine (prior: string list) =
         let next = Console.ReadKey true
 
         match next.Key with
-        | ConsoleKey.Enter ->
+        | ConsoleKey.Enter when next.Modifiers <> ConsoleModifiers.Shift ->
             printfn "" // write a final newline
             soFar
+        //| ConsoleKey.Enter -> // TODO: implement new lines properly
+        //    reader priorIndex (soFar + "\n") 0
         | ConsoleKey.Backspace when Console.CursorLeft <> start ->
             let nextSoFar = soFar.[0..pos-2] + soFar.[pos..]
             let nextPos = max 0 (pos - 1)

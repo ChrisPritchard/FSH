@@ -9,6 +9,26 @@ open Builtins
 open LineReader
 open Interactive
 
+type Token = | Command of text:string * arguments:string list | Code of string | Pipe | Out of fileName:string
+let writeTokens = 
+    List.iter (function 
+    | Command (s, args) -> 
+        colour "Yellow"
+        printf "%s " s
+        defaultColour ()
+        args |> List.iter (printf "%s ")
+    | Code s ->
+        colour "Cyan"
+        printf "%s " s
+    | Pipe ->
+        colour "Green"
+        printf "|> "
+    | Out s ->
+        colour "Green"
+        printf ">> "
+        defaultColour ()
+        printf "%s" s)
+
 [<EntryPoint>]
 let main _ =
 
@@ -92,6 +112,14 @@ let main _ =
     //"""
 
     //let result7 = fsi.EvalExpression "test 46"
+    
+    writeTokens [
+        Command ("echo", ["this"; "is"; "a"; "test"])
+        Pipe
+        Code "(fun s -> Seq.length s)"
+        Out "out.txt"
+        ]
+    printfn ""
 
     coreLoop []
 

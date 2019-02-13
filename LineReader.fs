@@ -43,6 +43,22 @@ let private attemptTabCompletion soFar pos =
         let soFar = soFar.[0..pos-last.Length-1] + matched
         soFar, soFar.Length
 
+type Token = | Command of string | Argument of string | Code of string | Pipe
+let writeTokens = 
+    List.iter (function 
+    | Command s -> 
+        colour "Yellow"
+        printf "%s " s
+    | Argument s ->
+        defaultColour ()
+        printf "%s " s
+    | Code s ->
+        colour "Cyan"
+        printf "%s " s
+    | Pipe ->
+        colour "Green"
+        printf "|> ")
+
 /// Reads a line of input from the user, enhanced for automatic tabbing and the like.
 /// Prior is a list of prior input lines, used for history navigation
 let readLine (prior: string list) = 
@@ -79,6 +95,8 @@ let readLine (prior: string list) =
         soFar::lines |> List.rev |> List.iteri (fun i -> linePrinter (i = 0) (i = lines.Length))
         Console.CursorLeft <- startPos + pos
         cursor true
+
+        writeTokens [Command "echo";Argument "this";Argument "is"; Argument "a";Argument "test";Pipe;Code "(fun s -> Seq.length s)"]
 
         // blocks here until a key is read
         let next = Console.ReadKey true

@@ -49,7 +49,9 @@ let readLine (prior: string list) =
     let startPos = Console.CursorLeft
     let startLine = Console.CursorTop
 
+    /// Creates a string of whitespace, n characters long
     let whitespace n = new String(' ', n)
+
     /// This will render a given line aligned to the prompt
     /// It will also print whitespace for the rest of the line, in order to 'overwrite' any existing printed text
     let linePrinter isFirst isLast line = 

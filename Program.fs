@@ -7,27 +7,7 @@ open System.ComponentModel
 open Terminal
 open Builtins
 open LineReader
-open Interactive
 open Model
-
-let writeTokens = 
-    List.iter (function 
-    | Command (s, args) -> 
-        colour "Yellow"
-        printf "%s " s
-        defaultColour ()
-        args |> List.iter (printf "%s ")
-    | Code s ->
-        colour "Cyan"
-        printf "%s " s
-    | Pipe ->
-        colour "Green"
-        printf "|> "
-    | Out s ->
-        colour "Green"
-        printf ">> "
-        defaultColour ()
-        printf "%s" s)
 
 [<EntryPoint>]
 let main _ =

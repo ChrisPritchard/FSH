@@ -51,6 +51,38 @@ let parts s =
         ]
     parts "" None ' ' s
 
+let tokens partlist = 
+    [
+        let mutable i = 0
+        let max = List.length partlist - 1
+        while i <= max do
+            let part = partlist.[i]
+            if part = "" then
+                i <- i + 1
+            elif part = "|>" && i <> 0 && i < max then 
+                yield Pipe
+                i <- i + 1
+            elif part = ">>" && i < max then
+                yield Out partlist.[i + 1]
+                i <- i + 2
+            elif part.[0] = '(' && (i = max || part.[part.Length - 1] = ')') then
+                yield Code part
+                i <- i + 1
+            else
+                let command = part
+                let mutable ni = i
+                while ni <= max + 1 do
+                    if ni > max || partlist.[ni] = "|>" || partlist.[ni] = ">>" then
+                        yield Command (command, partlist.[i+1..ni-1])
+                    else
+                        ni <- ni + 1
+                i <- ni
+    ]
+    // read each part
+    // if code or pipe return as such
+    // if out return it plus next as out
+    // else return command until pipe or out
+
 /// Writes out a list of tokens to the output, coloured appropriately.
 let writeTokens = 
     List.iter (function 

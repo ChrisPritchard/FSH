@@ -8,8 +8,8 @@ open Terminal
 open Builtins
 open LineReader
 open Interactive
+open Model
 
-type Token = | Command of text:string * arguments:string list | Code of string | Pipe | Out of fileName:string
 let writeTokens = 
     List.iter (function 
     | Command (s, args) -> 

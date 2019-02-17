@@ -29,7 +29,8 @@ let parts s =
     // This affords a good deal of control over the output, and is functional/immutable.
     let rec parts soFar wrapped last remainder = 
         [
-            if remainder = "" then yield soFar
+            if remainder = "" then
+                if soFar <> "" then yield soFar
             else
                 let c, next = remainder.[0], remainder.[1..]
                 match c, wrapped with
@@ -57,9 +58,7 @@ let tokens partlist =
         let max = List.length partlist - 1
         while i <= max do
             let part = partlist.[i]
-            if part = "" then
-                i <- i + 1
-            elif part = "|>" && i <> 0 && i < max then 
+            if part = "|>" && i <> 0 && i < max then 
                 yield Pipe
                 i <- i + 1
             elif part = ">>" && i < max then
@@ -71,17 +70,15 @@ let tokens partlist =
             else
                 let command = part
                 let mutable ni = i
-                while ni <= max + 1 do
+                let mutable yielded = false
+                while not yielded && ni <= max + 1 do
                     if ni > max || partlist.[ni] = "|>" || partlist.[ni] = ">>" then
                         yield Command (command, partlist.[i+1..ni-1])
+                        yielded <- true
                     else
                         ni <- ni + 1
                 i <- ni
     ]
-    // read each part
-    // if code or pipe return as such
-    // if out return it plus next as out
-    // else return command until pipe or out
 
 /// Writes out a list of tokens to the output, coloured appropriately.
 let writeTokens = 

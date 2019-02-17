@@ -30,7 +30,9 @@ let parts s =
     let rec parts soFar wrapped last remainder = 
         [
             if remainder = "" then
-                if soFar <> "" then yield soFar
+                match wrapped with
+                | Some c -> yield (string c + soFar)
+                | None -> if soFar <> "" then yield soFar
             else
                 let c, next = remainder.[0], remainder.[1..]
                 match c, wrapped with
@@ -45,7 +47,7 @@ let parts s =
                     yield sprintf "\"%s\"" soFar
                     yield! parts "" None last next
                 | ' ', None when last <> '\\' ->
-                    yield soFar
+                    if soFar <> "" then yield soFar
                     yield! parts "" None last next
                 | _ -> 
                     yield! parts (soFar + string c) wrapped c next
@@ -58,10 +60,7 @@ let tokens partlist =
         let max = List.length partlist - 1
         while i <= max do
             let part = partlist.[i]
-            if part = "" then
-                yield Whitespace
-                i <- i + 1
-            elif part = "|>" then 
+            if part = "|>" then 
                 yield Pipe
                 i <- i + 1
             elif part = ">>" && i < max then

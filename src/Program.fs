@@ -58,8 +58,6 @@ let main _ =
         if s.Length = 0 then () // no command so just loop
         else 
             let parts = parts s
-            let tokens = tokens parts
-            writeTokens tokens
             let command = parts.[0]
 
             // Help (or ?) are special builtins, not part of the main builtin map (due to loading order).

@@ -76,7 +76,8 @@ let readLine (prior: string list) =
         cursor false
         Console.CursorLeft <- startPos
         Console.CursorTop <- startLine
-        soFar::lines |> List.rev |> List.iteri (fun i -> linePrinter (i = 0) (i = lines.Length))
+        //soFar::lines |> List.rev |> List.iteri (fun i -> linePrinter (i = 0) (i = lines.Length))
+        parts soFar |> tokens |> writeTokens
         Console.CursorLeft <- startPos + pos
         cursor true
         

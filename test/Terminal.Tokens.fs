@@ -27,5 +27,5 @@ let ``Tokens parses code into a pipe into code`` () =
 
 [<Fact>]
 let ``Tokens parses empty space into whitespace`` () =
-    let result = tokens ["";"";"(test)";"";""]
-    result |> should equal [Whitespace;Whitespace;Code "(test)";Whitespace;Whitespace]
+    let result = tokens [" ";"(test)";"  "]
+    result |> should equal [Whitespace 1;Code "(test)";Whitespace 2]

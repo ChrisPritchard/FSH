@@ -52,8 +52,6 @@ let readLine (prior: string list) =
     /// Takes a string (single or multiline) and prints it coloured by type to the output.
     /// By doing this everytime a character is read, changes to structure can be immediately reflected.
     let printFormatted (soFar: string) =
-        // Creates a string of whitespace, n characters long
-        let whitespace n = new String(' ', n)
         // This will render a given line aligned to the prompt
         // It will also print whitespace for the rest of the line, in order to 'overwrite' any existing printed text
         let lineFormatted isFirst (line: string) = 

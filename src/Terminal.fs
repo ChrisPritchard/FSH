@@ -4,6 +4,9 @@ module Terminal
 open System
 open Model
 
+// Creates a string of whitespace, n characters long
+let whitespace n = new String(' ', n)
+
 /// The starting console colour, before it is overriden by prompts, outputs and help for example.
 let originalColour = ConsoleColor.Gray
 
@@ -59,7 +62,22 @@ let parts s =
                 | _ -> 
                     yield! parts (soFar + string c) wrapped c next
         ]
-    parts "" None ' ' s
+    let raw = parts "" None ' ' s
+    if List.isEmpty raw then raw
+    else
+        // A final fold is used to combine whitespace blocks: e.g. "";"";"" becomes "   "
+        let parsed, final = 
+            (([], raw.[0]), raw.[1..]) 
+            ||> List.fold (fun (results, last) next ->
+                if next = "" && last = "" then 
+                    results, "  "
+                elif next = "" && String.IsNullOrWhiteSpace last then 
+                    results, last + " "
+                elif String.IsNullOrWhiteSpace last then
+                    last.[..last.Length - 2]::results, next
+                else 
+                    last::results, next)
+        List.rev (final::parsed)
 
 /// Tokens takes a set of parts (returned by previous method - a string array) and converts it into `operational tokens`.
 /// E.g. echo hello world |> (fun (s:string) -> s.ToUpper()) >> out.txt would become a [Command; Pipe; Code; Out]
@@ -69,8 +87,8 @@ let tokens partlist =
         let max = List.length partlist - 1
         while i <= max do
             let part = partlist.[i]
-            if part = "" then 
-                yield Whitespace
+            if String.IsNullOrWhiteSpace part then 
+                yield Whitespace part.Length
                 i <- i + 1
             elif part = "|>" then 
                 yield Pipe
@@ -120,5 +138,5 @@ let writeTokens tokens =
             printf ">> "
             defaultColour ()
             printf "%s" s
-        | Whitespace ->
-            printf " ")
+        | Whitespace n ->
+            printf "%s" (whitespace n))

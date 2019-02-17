@@ -47,4 +47,4 @@ let ``Parts escapes spaces`` () =
 [<Fact>]
 let ``Parts treats whitespace as empty tokens`` () =
     let result = parts "test1     test2"
-    result |> should equal ["test1";"";"";"";"";"test2"]
+    result |> should equal ["test1";"   ";"test2"]

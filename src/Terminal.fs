@@ -31,19 +31,26 @@ let parts s =
         [
             if remainder = "" then
                 match wrapped with
-                | Some c -> yield (string c + soFar)
+                | Some (c, _) -> yield (string c + soFar) // If a wrapping op was in progress, add the start token to be faithful to user input.
                 | None -> if soFar <> "" then yield soFar
             else
                 let c, next = remainder.[0], remainder.[1..]
                 match c, wrapped with
                 | '(', None when soFar = "" ->
-                    yield! parts soFar (Some '(') last next
-                | ')', Some '(' when last <> '\\' ->
+                    let nextWrapped = Some ('(', 1)
+                    yield! parts soFar nextWrapped last next
+                | '(', Some ('(', n) -> // Bracket pushing.
+                    let nextWrapped = Some ('(', n + 1)
+                    yield! parts (soFar + "(") nextWrapped last next
+                | ')', Some ('(', 1) when last <> '\\' ->
                     yield sprintf "(%s)" soFar
                     yield! parts "" None last next
+                | ')', Some ('(', n) when last <> '\\' -> // Bracket popping.
+                    let nextWrapped = Some ('(', n - 1)
+                    yield! parts (soFar + ")") nextWrapped last next
                 | '\"', None when soFar = "" -> 
-                    yield! parts soFar (Some '\"') last next
-                | '\"', Some '\"' when last <> '\\' ->
+                    yield! parts soFar (Some ('\"', 1)) last next // Quotes always have a 'stack' of 1, as they cant be pushed/popped like brackets.
+                | '\"', Some ('\"', 1) when last <> '\\' ->
                     yield sprintf "\"%s\"" soFar
                     yield! parts "" None last next
                 | ' ', None when last <> '\\' ->

@@ -54,12 +54,10 @@ let readLine (prior: string list) =
 
     /// This will render a given line aligned to the prompt
     /// It will also print whitespace for the rest of the line, in order to 'overwrite' any existing printed text
-    let linePrinter isFirst isLast line = 
-        sprintf "%s%s%s%s"
-            (if isFirst then "" else whitespace startPos)
-            line 
-            (whitespace (Console.WindowWidth - startPos - line.Length - 1))
-            (if not isLast then "\r\n" else "")
+    let linePrinter isFirst (line: string) = 
+        let prefix = if isFirst then "" else whitespace startPos
+        let postfix = whitespace (Console.WindowWidth - startPos - line.Length - 1)
+        sprintf "%s%s%s" prefix line postfix
     
     /// When using back and forth in history (up down arrows), this function is used to break up the history string into lines and last line
     let asLines (prior: string) = 
@@ -77,8 +75,8 @@ let readLine (prior: string list) =
         Console.CursorLeft <- startPos
         Console.CursorTop <- startLine
         soFar::lines 
-        |> List.rev |> List.mapi (fun i -> linePrinter (i = 0) (i = lines.Length))
-        |> String.concat "" |> parts |> tokens |> writeTokens
+        |> List.rev |> List.mapi (fun i -> linePrinter (i = 0))
+        |> String.concat "\r\n" |> parts |> tokens |> writeTokens
         Console.CursorLeft <- startPos + pos
         cursor true
         

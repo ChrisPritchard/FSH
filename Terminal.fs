@@ -58,7 +58,7 @@ let tokens partlist =
         let max = List.length partlist - 1
         while i <= max do
             let part = partlist.[i]
-            if part = "|>" && i <> 0 && i < max then 
+            if part = "|>" then 
                 yield Pipe
                 i <- i + 1
             elif part = ">>" && i < max then
@@ -69,15 +69,18 @@ let tokens partlist =
                 i <- i + 1
             else
                 let command = part
-                let mutable ni = i
-                let mutable yielded = false
-                while not yielded && ni <= max + 1 do
-                    if ni > max || partlist.[ni] = "|>" || partlist.[ni] = ">>" then
-                        yield Command (command, partlist.[i+1..ni-1])
-                        yielded <- true
-                    else
-                        ni <- ni + 1
-                i <- ni
+                let args = [
+                    let mutable valid = true
+                    i <- i + 1
+                    while valid && i <= max do
+                        let argOption = partlist.[i]
+                        if argOption = "|>" || argOption = ">>" then
+                            valid <- false
+                        else 
+                            yield argOption
+                        i <- i + 1
+                ]
+                yield Command (command, args)
     ]
 
 /// Writes out a list of tokens to the output, coloured appropriately.

@@ -59,71 +59,83 @@ let readLine (prior: string list) =
         let postfix = whitespace (Console.WindowWidth - startPos - line.Length - 1)
         sprintf "%s%s%s" prefix line postfix
     
-    /// When using back and forth in history (up down arrows), this function is used to break up the history string into lines and last line
-    let asLines (prior: string) = 
-        let lines = 
-            prior.Split([|"\r\n"|], StringSplitOptions.RemoveEmptyEntries)
-            |> Array.toList
-        List.rev lines.[0..lines.Length-2], lines.[lines.Length-1]
+    /// For operations that alter the current string at pos (e.g. delete) 
+    /// the last line position in the total string needs to be determined.
+    let lastLineStart (soFar: string) =
+        let lastLineBreak = soFar.LastIndexOf("\r\n")
+        if lastLineBreak = -1 then 0 else lastLineBreak + 2
 
     // This recursively prompts for input from the user, producing a final string result on the reception of the Enter key.
-    let rec reader priorIndex lines (soFar: string) pos =
+    let rec reader priorIndex (soFar: string) pos =
 
         // By printing out the current content of the line after every char
         // implementing backspace and delete becomes easier.
         cursor false
         Console.CursorLeft <- startPos
         Console.CursorTop <- startLine
-        soFar::lines 
-        |> List.rev |> List.mapi (fun i -> linePrinter (i = 0))
+        soFar.Split("\r\n")
+        |> Array.mapi (fun i -> linePrinter (i = 0))
         |> String.concat "\r\n" |> parts |> tokens |> writeTokens
         Console.CursorLeft <- startPos + pos
         cursor true
         
         // Blocks here until a key is read.
         let next = Console.ReadKey true
-
+        
+        // The users keys is evaluated as either: Enter (without Shift) meaning done, 
+        // a control key like Backspace, Delete, Arrows (including history up/down using the prior commands list),
+        // or, if none of the above, a character to append to the 'soFar' string.
         match next.Key with
         | ConsoleKey.Enter when next.Modifiers <> ConsoleModifiers.Shift ->
             printfn "" // Write a final newline.
-            (soFar::lines) |> List.rev |> String.concat "\r\n"
+            soFar
+        // Enter with shift pressed adds a new line, aligned with the prompt position.
         | ConsoleKey.Enter ->
-            reader priorIndex (soFar::lines) "" 0
+            reader priorIndex (soFar + "\r\n") 0
         | ConsoleKey.Backspace when Console.CursorLeft <> startPos ->
-            let nextSoFar = soFar.[0..pos-2] + soFar.[pos..]
+            let relPos = lastLineStart soFar + pos
+            let nextSoFar = soFar.[0..relPos-2] + soFar.[relPos..]
             let nextPos = max 0 (pos - 1)
-            reader priorIndex lines nextSoFar nextPos
+            reader priorIndex nextSoFar nextPos
         | ConsoleKey.Delete ->
-            let nextSoFar = soFar.[0..pos-1] + soFar.[pos+1..]
-            reader priorIndex lines nextSoFar pos
+            let relPos = lastLineStart soFar + pos
+            let nextSoFar = soFar.[0..relPos-1] + soFar.[relPos+1..]
+            reader priorIndex nextSoFar pos
+        // Left and Right change the position on the current line, allowing users to insert characters.
         | ConsoleKey.LeftArrow ->
             let nextPos = max 0 (pos - 1)
-            reader priorIndex lines soFar nextPos
+            reader priorIndex soFar nextPos
         | ConsoleKey.RightArrow ->
             let nextPos = min soFar.Length (pos + 1)
-            reader priorIndex lines soFar nextPos
+            reader priorIndex soFar nextPos
+        // Up and Down replace the current soFar with the relevant history item from the 'prior' list.
         | ConsoleKey.UpArrow when priorIndex < List.length prior - 1 ->
             let nextIndex = priorIndex + 1
-            let nextLines, nextSoFar = asLines prior.[nextIndex]
-            let nextPos = nextSoFar.Length
-            reader nextIndex nextLines nextSoFar nextPos
+            let nextSoFar = prior.[nextIndex]
+            let nextPos = nextSoFar.Length - lastLineStart nextSoFar
+            reader nextIndex nextSoFar nextPos
         | ConsoleKey.DownArrow when priorIndex > 0 ->
             let nextIndex = priorIndex - 1
-            let nextLines, nextSoFar = asLines prior.[nextIndex]
-            let nextPos = nextSoFar.Length
-            reader nextIndex nextLines nextSoFar nextPos
+            let nextSoFar = prior.[nextIndex]
+            let nextPos = nextSoFar.Length - lastLineStart nextSoFar
+            reader nextIndex nextSoFar nextPos
+        // Like Left and Right, Home and End jumps to the start or end of the current line.
         | ConsoleKey.Home ->
-            reader priorIndex lines soFar 0
+            reader priorIndex soFar 0
         | ConsoleKey.End ->
-            reader priorIndex lines soFar soFar.Length
+            let nextPos = (soFar.Length - lastLineStart soFar)
+            reader priorIndex soFar nextPos
+        // Tab is complex, in that it attempts to finish a path or command given the last token in soFar.
         | ConsoleKey.Tab when soFar <> "" ->
             let (soFar, pos) = attemptTabCompletion soFar pos
-            reader priorIndex lines soFar pos
+            reader priorIndex soFar pos
+        // Finally, if none of the above and the key pressed is not a control char (e.g. Alt, Esc), it is appended.
         | _ ->
             let c = next.KeyChar
             if not (Char.IsControl c) then
-                reader priorIndex lines (soFar.[0..pos-1] + string c + soFar.[pos..]) (pos + 1)
+                let relPos = lastLineStart soFar + pos
+                reader priorIndex (soFar.[0..relPos-1] + string c + soFar.[relPos..]) (pos + 1)
             else
-                reader priorIndex lines soFar pos
+                reader priorIndex soFar pos
 
-    reader -1 [] "" 0
+    reader -1 "" 0

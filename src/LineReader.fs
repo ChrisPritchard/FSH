@@ -49,15 +49,22 @@ let readLine (prior: string list) =
     let startPos = Console.CursorLeft
     let startLine = Console.CursorTop
 
-    /// Creates a string of whitespace, n characters long
-    let whitespace n = new String(' ', n)
+    /// Takes a string (single or multiline) and prints it coloured by type to the output.
+    /// By doing this everytime a character is read, changes to structure can be immediately reflected.
+    let printFormatted (soFar: string) =
+        // Creates a string of whitespace, n characters long
+        let whitespace n = new String(' ', n)
+        // This will render a given line aligned to the prompt
+        // It will also print whitespace for the rest of the line, in order to 'overwrite' any existing printed text
+        let lineFormatted isFirst (line: string) = 
+            let prefix = if isFirst then "" else whitespace startPos
+            let postfix = whitespace (Console.WindowWidth - startPos - line.Length - 2)
+            sprintf "%s%s%s" prefix line postfix
 
-    /// This will render a given line aligned to the prompt
-    /// It will also print whitespace for the rest of the line, in order to 'overwrite' any existing printed text
-    let linePrinter isFirst (line: string) = 
-        let prefix = if isFirst then "" else whitespace startPos
-        let postfix = whitespace (Console.WindowWidth - startPos - line.Length - 1)
-        sprintf "%s%s%s" prefix line postfix
+        let formatted = soFar.Split("\r\n") |> Array.mapi (fun i -> lineFormatted (i = 0)) |> String.concat "\r\n" 
+        let parts = parts formatted // From Terminal.fs, breaks the input into its parts
+        let tokens = tokens parts // Also from Terminal.fs, groups and tags the parts by type (e.g. Code)
+        writeTokens tokens // Writes the types out, coloured.
     
     /// For operations that alter the current string at pos (e.g. delete) 
     /// the last line position in the total string needs to be determined.
@@ -73,9 +80,7 @@ let readLine (prior: string list) =
         cursor false
         Console.CursorLeft <- startPos
         Console.CursorTop <- startLine
-        soFar.Split("\r\n")
-        |> Array.mapi (fun i -> linePrinter (i = 0))
-        |> String.concat "\r\n" |> parts |> tokens |> writeTokens
+        printFormatted soFar
         Console.CursorLeft <- startPos + pos
         cursor true
         

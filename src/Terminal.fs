@@ -54,6 +54,8 @@ let parts s =
         ]
     parts "" None ' ' s
 
+/// Tokens takes a set of parts (returned by previous method - a string array) and converts it into `operational tokens`.
+/// E.g. echo hello world |> (fun (s:string) -> s.ToUpper()) >> out.txt would become a [Command; Pipe; Code; Out]
 let tokens partlist = 
     [
         let mutable i = 0

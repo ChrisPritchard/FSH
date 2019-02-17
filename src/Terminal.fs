@@ -54,7 +54,7 @@ let parts s =
                     yield sprintf "\"%s\"" soFar
                     yield! parts "" None last next
                 | ' ', None when last <> '\\' ->
-                    if soFar <> "" then yield soFar
+                    yield soFar
                     yield! parts "" None last next
                 | _ -> 
                     yield! parts (soFar + string c) wrapped c next
@@ -69,7 +69,10 @@ let tokens partlist =
         let max = List.length partlist - 1
         while i <= max do
             let part = partlist.[i]
-            if part = "|>" then 
+            if part = "" then 
+                yield Whitespace
+                i <- i + 1
+            elif part = "|>" then 
                 yield Pipe
                 i <- i + 1
             elif part = ">>" && i < max then
@@ -88,6 +91,8 @@ let tokens partlist =
                         if argOption = "|>" || argOption = ">>" then
                             valid <- false
                             i <- i - 1
+                        elif argOption = "" then
+                            yield " "
                         else 
                             yield argOption
                         i <- i + 1
@@ -114,4 +119,6 @@ let writeTokens tokens =
             colour "Green"
             printf ">> "
             defaultColour ()
-            printf "%s" s)
+            printf "%s" s
+        | Whitespace ->
+            printf " ")

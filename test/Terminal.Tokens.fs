@@ -24,3 +24,8 @@ let ``Tokens parses a command with args`` () =
 let ``Tokens parses code into a pipe into code`` () =
     let result = tokens ["(10)";"|>";"(printfn \"%i\")"]
     result |> should equal [Code "(10)";Pipe;Code "(printfn \"%i\")"]
+
+[<Fact>]
+let ``Tokens parses empty space into whitespace`` () =
+    let result = tokens ["";"";"(test)";"";""]
+    result |> should equal [Whitespace;Whitespace;Code "(test)";Whitespace;Whitespace]

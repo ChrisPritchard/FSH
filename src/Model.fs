@@ -13,3 +13,4 @@ type Token =
     | Pipe 
     /// Out is a final operation to send the output of what came before to a file.
     | Out of fileName:string
+    | Whitespace

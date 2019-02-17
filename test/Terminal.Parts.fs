@@ -30,6 +30,11 @@ let ``Parts parses brackets properly`` () =
     result |> should equal ["(test1 test2)"]
 
 [<Fact>]
+let ``Parts parses nested brackets properly`` () =
+    let result = parts "(test1 (test2) test3)"
+    result |> should equal ["(test1 (test2) test3)"]
+
+[<Fact>]
 let ``Parts escapes quotes`` () =
     let result = parts "\\\"test1 test2\\\""
     result |> should equal ["\\\"test1";"test2\\\""]

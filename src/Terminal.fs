@@ -78,6 +78,7 @@ let tokens partlist =
                         let argOption = partlist.[i]
                         if argOption = "|>" || argOption = ">>" then
                             valid <- false
+                            i <- i - 1
                         else 
                             yield argOption
                         i <- i + 1

@@ -55,7 +55,7 @@ let readLine (prior: string list) =
     /// This will render a given line aligned to the prompt
     /// It will also print whitespace for the rest of the line, in order to 'overwrite' any existing printed text
     let linePrinter isFirst isLast line = 
-        printf "%s%s%s%s"
+        sprintf "%s%s%s%s"
             (if isFirst then "" else whitespace startPos)
             line 
             (whitespace (Console.WindowWidth - startPos - line.Length - 1))
@@ -76,8 +76,9 @@ let readLine (prior: string list) =
         cursor false
         Console.CursorLeft <- startPos
         Console.CursorTop <- startLine
-        //soFar::lines |> List.rev |> List.iteri (fun i -> linePrinter (i = 0) (i = lines.Length))
-        parts soFar |> tokens |> writeTokens
+        soFar::lines 
+        |> List.rev |> List.mapi (fun i -> linePrinter (i = 0) (i = lines.Length))
+        |> String.concat "" |> parts |> tokens |> writeTokens
         Console.CursorLeft <- startPos + pos
         cursor true
         

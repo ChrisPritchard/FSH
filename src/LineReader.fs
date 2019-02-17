@@ -80,12 +80,12 @@ let readLine (prior: string list) =
         Console.CursorLeft <- startPos + pos
         cursor true
         
-        // blocks here until a key is read
+        // Blocks here until a key is read.
         let next = Console.ReadKey true
 
         match next.Key with
         | ConsoleKey.Enter when next.Modifiers <> ConsoleModifiers.Shift ->
-            printfn "" // write a final newline
+            printfn "" // Write a final newline.
             (soFar::lines) |> List.rev |> String.concat "\r\n"
         | ConsoleKey.Enter ->
             reader priorIndex (soFar::lines) "" 0

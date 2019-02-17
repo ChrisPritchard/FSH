@@ -38,3 +38,8 @@ let ``Parts escapes quotes`` () =
 let ``Parts escapes spaces`` () =
     let result = parts "test1 te\ st2"
     result |> should equal ["test1";"te\ st2"]
+
+[<Fact>]
+let ``Parts treats whitespace as empty tokens`` () =
+    let result = parts "test1     test2"
+    result |> should equal ["test1";"";"";"";"";"test2"]

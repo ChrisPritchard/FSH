@@ -19,7 +19,7 @@ let ``Tokens parses no arg command`` () =
 let ``Tokens parses a command with args`` () =
     let result = tokens ["test";"a1";"a2"]
     result |> should equal [Command ("test", ["a1";"a2"])]
-
+    
 [<Fact>]
 let ``Tokens parses code into a pipe into code`` () =
     let result = tokens ["(10)";"|>";"(printfn \"%i\")"]

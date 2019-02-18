@@ -8,6 +8,7 @@ open System
 open System.IO
 open Builtins
 open Terminal
+open Model
 
 /// For a set of strings, will return the common start string.
 let private common startIndex (candidates : string list) =
@@ -43,6 +44,37 @@ let private attemptTabCompletion soFar pos =
         let soFar = soFar.[0..pos-last.Length-1] + matched
         soFar, soFar.Length
 
+/// Writes out a list of tokens to the output, coloured appropriately.
+/// This also ensures the print out is aligned with the prompt
+let writeTokens promptPos tokens = 
+    let align () = if Console.CursorLeft < promptPos then Console.CursorLeft <- promptPos
+    let printAligned (s: string) = 
+        let lines = s.Split "\r\n"
+        lines |> Array.iteri (fun i line -> 
+            align ()
+            if i = Array.length lines - 1 then printf "%s " line else printfn "%s" line)
+    tokens 
+    |> List.iter (fun token ->
+        match token with
+        | Command (s, args) -> 
+            colour "Yellow"
+            printAligned s
+            defaultColour ()
+            args |> Seq.iter printAligned
+        | Code s ->
+            colour "Cyan"
+            printAligned s
+        | Pipe ->
+            colour "Green"
+            printAligned "|>"
+        | Out s ->
+            colour "Green"
+            printAligned ">>"
+            defaultColour ()
+            printAligned s
+        | Whitespace n ->
+            printAligned (whitespace n))
+
 /// Reads a line of input from the user, enhanced for automatic tabbing and the like.
 /// Prior is a list of prior input lines, used for history navigation
 let readLine (prior: string list) = 
@@ -52,17 +84,9 @@ let readLine (prior: string list) =
     /// Takes a string (single or multiline) and prints it coloured by type to the output.
     /// By doing this everytime a character is read, changes to structure can be immediately reflected.
     let printFormatted (soFar: string) =
-        // This will render a given line aligned to the prompt
-        // It will also print whitespace for the rest of the line, in order to 'overwrite' any existing printed text
-        let lineFormatted isFirst (line: string) = 
-            let prefix = if isFirst then "" else whitespace startPos
-            let postfix = whitespace (Console.WindowWidth - startPos - line.Length - 2)
-            sprintf "%s%s%s" prefix line postfix
-
-        let formatted = soFar.Split("\r\n") |> Array.mapi (fun i -> lineFormatted (i = 0)) |> String.concat "\r\n" 
-        let parts = parts formatted // From Terminal.fs, breaks the input into its parts
+        let parts = parts soFar // From Terminal.fs, breaks the input into its parts
         let tokens = tokens parts // Also from Terminal.fs, groups and tags the parts by type (e.g. Code)
-        writeTokens tokens // Writes the types out, coloured.
+        writeTokens startPos tokens // Writes the types out, coloured.
     
     /// For operations that alter the current string at pos (e.g. delete) 
     /// the last line position in the total string needs to be determined.

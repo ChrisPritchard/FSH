@@ -161,7 +161,7 @@ let builtins =
         "?", ((fun _ -> ()), "same as help, prints the builtin list, or the help of specific commands")
         "help", ((fun _ -> ()), "same as ?, prints the builtin list, or the help of specific commands")
         "exit", ((fun _ -> ()), "exits FSH")
-    ]
+    ] 
 let builtinMap = 
     builtins 
     |> List.map (fun (commandName, (implementation, _)) -> commandName, implementation) 

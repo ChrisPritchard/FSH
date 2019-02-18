@@ -73,8 +73,10 @@ let parts s =
                     results, "  "
                 elif next = "" && String.IsNullOrWhiteSpace last then 
                     results, last + " "
+                elif last = "" then
+                    results, next
                 elif String.IsNullOrWhiteSpace last then
-                    last.[..last.Length - 2]::results, next
+                    last.[0..last.Length - 2]::results, next
                 else 
                     last::results, next)
         List.rev (final::parsed)

@@ -118,7 +118,7 @@ let readLine (prior: string list) =
             soFar
         // Enter with shift pressed adds a new line, aligned with the prompt position.
         | ConsoleKey.Enter ->
-            reader priorIndex (soFar + "\r\n") 0
+            reader priorIndex (soFar + " \r\n ") 0
         | ConsoleKey.Backspace when Console.CursorLeft <> startPos ->
             let relPos = lastLineStart soFar + pos
             let nextSoFar = soFar.[0..relPos-2] + soFar.[relPos..]

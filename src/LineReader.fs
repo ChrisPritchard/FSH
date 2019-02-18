@@ -73,7 +73,9 @@ let writeTokens promptPos tokens =
             defaultColour ()
             printAligned s
         | Whitespace n ->
-            printAligned (whitespace n))
+            printAligned (whitespace n)
+        | Linebreak ->
+            printfn "")
 
 /// Reads a line of input from the user, enhanced for automatic tabbing and the like.
 /// Prior is a list of prior input lines, used for history navigation

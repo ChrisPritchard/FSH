@@ -15,3 +15,5 @@ type Token =
     | Out of fileName:string
     /// Represents a chunk of whitespace, used to preserve rendering as written, mostly.
     | Whitespace of length:int
+    /// Like whitespace, is used for formatting mostly
+    | Linebreak 

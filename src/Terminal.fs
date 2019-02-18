@@ -75,6 +75,8 @@ let parts s =
                     results, last + " "
                 elif last = "" then
                     results, next
+                elif last = "\r\n" then
+                    last::results, next
                 elif String.IsNullOrWhiteSpace last then
                     last.[0..last.Length - 2]::results, next
                 else 
@@ -89,7 +91,10 @@ let tokens partlist =
         let max = List.length partlist - 1
         while i <= max do
             let part = partlist.[i]
-            if String.IsNullOrWhiteSpace part then 
+            if part = "\r\n" then 
+                yield Linebreak
+                i <- i + 1
+            elif String.IsNullOrWhiteSpace part then 
                 yield Whitespace part.Length
                 i <- i + 1
             elif part = "|>" then 

@@ -48,11 +48,15 @@ let private attemptTabCompletion soFar pos =
 /// This also ensures the print out is aligned with the prompt
 let writeTokens promptPos tokens = 
     let align () = if Console.CursorLeft < promptPos then Console.CursorLeft <- promptPos
+    let clearLine () = printf "%s" (whitespace (Console.WindowWidth - Console.CursorLeft - 1))
     let printAligned (s: string) = 
         let lines = s.Split "\r\n"
         lines |> Array.iteri (fun i line -> 
             align ()
-            if i = Array.length lines - 1 then printf "%s " line else printfn "%s" line)
+            printf "%s " line 
+            if i <> Array.length lines - 1 then 
+                clearLine ()
+                printfn "")
     tokens 
     |> List.iter (fun token ->
         match token with
@@ -75,7 +79,9 @@ let writeTokens promptPos tokens =
         | Whitespace n ->
             printAligned (whitespace n)
         | Linebreak ->
+            clearLine ()
             printfn "")
+    clearLine ()
 
 /// Reads a line of input from the user, enhanced for automatic tabbing and the like.
 /// Prior is a list of prior input lines, used for history navigation

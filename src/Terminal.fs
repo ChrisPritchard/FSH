@@ -25,6 +25,25 @@ let colour s =
 /// The cursor should only be visible when accepting input from the user, and not when drawing the prompt, for example.
 let cursor b = Console.CursorVisible <- b
 
+/// Folds the given string list, joing ""'s into whitespace: "";"" becomes "  "
+let private joinBlanks (raw: string list) =
+    let parsed, final = 
+        (([], raw.[0]), raw.[1..]) 
+        ||> List.fold (fun (results, last) next ->
+            if next = "" && last = "" then 
+                results, "  "
+            elif next = "" && String.IsNullOrWhiteSpace last then 
+                results, last + " "
+            elif last = "" then
+                results, next
+            elif last = "\r\n" then
+                last::results, next
+            elif String.IsNullOrWhiteSpace last then
+                last.[0..last.Length - 2]::results, next
+            else 
+                last::results, next)
+    List.rev (final::parsed)
+
 /// Splits up a string into tokens, accounting for escaped spaces and quote/code wrapping,
 /// e.g. '"hello" world "this is a" test\ test' would be processed as ["hello";"world";"this is a";"test test"].
 let parts s =
@@ -64,24 +83,7 @@ let parts s =
         ]
     let raw = parts "" None ' ' s
     if List.isEmpty raw then raw
-    else
-        // A final fold is used to combine whitespace blocks: e.g. "";"";"" becomes "   "
-        let parsed, final = 
-            (([], raw.[0]), raw.[1..]) 
-            ||> List.fold (fun (results, last) next ->
-                if next = "" && last = "" then 
-                    results, "  "
-                elif next = "" && String.IsNullOrWhiteSpace last then 
-                    results, last + " "
-                elif last = "" then
-                    results, next
-                elif last = "\r\n" then
-                    last::results, next
-                elif String.IsNullOrWhiteSpace last then
-                    last.[0..last.Length - 2]::results, next
-                else 
-                    last::results, next)
-        List.rev (final::parsed)
+    else joinBlanks raw // A final fold is used to combine whitespace blocks: e.g. "";"";"" becomes "   "
 
 /// Tokens takes a set of parts (returned by previous method - a string array) and converts it into `operational tokens`.
 /// E.g. echo hello world |> (fun (s:string) -> s.ToUpper()) >> out.txt would become a [Command; Pipe; Code; Out]

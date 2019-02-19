@@ -95,7 +95,7 @@ let rec tokens partlist =
             Pipe::tokens remainder
         | ">>" ->
             match remainder with
-            | [path] -> [Out path]
+            | path::_ -> [Out path]
             | _ -> [Out ""]
         | s when s.[0] = '(' && (remainder = [] || s.[s.Length - 1] = ')') ->
             Code s::tokens remainder

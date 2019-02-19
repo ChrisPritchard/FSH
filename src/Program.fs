@@ -2,11 +2,14 @@
 /// It prompts the user for input, then processes the result before repeating.
 /// In addition, some ancillary functions like process launching are also defined.
 
+open System
 open System.Diagnostics
 open System.ComponentModel
-open Terminal
+open Model
 open Builtins
+open Terminal
 open LineReader
+open System.Text
 
 [<EntryPoint>]
 let main _ =
@@ -37,8 +40,11 @@ let main _ =
                 UseShellExecute = false)
             |> fun i -> new Process (StartInfo = i)
                 
-        op.OutputDataReceived.Add(fun e -> printfn "%s" e.Data)
-        op.ErrorDataReceived.Add(fun e -> printfn "%s" e.Data)
+        let outBuilder = new StringBuilder ()
+        let errorBuilder = new StringBuilder ()
+
+        op.OutputDataReceived.Add(fun e -> outBuilder.AppendLine e.Data |> ignore)
+        op.ErrorDataReceived.Add(fun e -> errorBuilder.AppendLine e.Data |> ignore)
 
         try
             op.Start () |> ignore
@@ -47,27 +53,54 @@ let main _ =
             op.BeginOutputReadLine ()
             op.WaitForExit ()
             op.CancelOutputRead ()
+
+            if errorBuilder.Length <> 0 then 
+                Error (errorBuilder.ToString()) 
+            else 
+                Ok (outBuilder.ToString())
         with
             | :? Win32Exception as ex -> // Even on linux/osx, this is the exception thrown.
-                colour "Red"
-                printfn "%s: %s" fileName ex.Message
+                Error (sprintf "%s: %s" fileName ex.Message)
+    
+    let runCommand command args =
+        // Help (or ?) are special builtins, not part of the main builtin map (due to loading order).
+        if command = "help" || command = "?" then
+            help args
+        else
+            match Map.tryFind command builtinMap with
+            | Some f -> 
+                f args
+            | None -> // If no builtin is found, try to run the users input as a execute process command.
+                launchProcess command args
 
-    /// Tries to follow what the user is wanting to do: run a builtin, or execute a process for example.
-    let processCommand (s : string) =
-        if s.Length = 0 then () // no command so just loop
+    let processToken lastResult token =
+        match lastResult with
+        | Error _ -> lastResult
+        | Ok s ->
+            match token with
+            | Command (name, args) ->
+                let args = args @ [s]
+                runCommand name args
+            | Pipe -> 
+                lastResult
+            | _ -> Ok ""
+
+    /// Tries to follow what the user is wanting to do: run a builtin, or execute a process or execute code for example.
+    /// Will chain together piped results, attempting to feed the result of prior to the input of the next
+    let processEntered (s : string) =
+        if String.IsNullOrWhiteSpace s then () // nothing specified so just loop
         else 
             let parts = parts s
-            let command = parts.[0]
+            let tokens = tokens parts
 
-            // Help (or ?) are special builtins, not part of the main builtin map (due to loading order).
-            if command = "help" || command = "?" then
-                help parts.[1..]
-            else
-                match Map.tryFind command builtinMap with
-                | Some f -> 
-                    f parts.[1..]
-                | None -> // If no builtin is found, try to run the users input as a execute process command.
-                    launchProcess command parts.[1..]
+            let output = (Ok "", tokens) ||> List.fold processToken
+            match output with 
+            | Ok s -> 
+                colour "Green"
+                printfn "%s" s 
+            | Error s -> 
+                colour "Red"
+                printfn "%s" s 
 
     /// The coreloop waits for input, runs that input, and repeats. 
     /// It also handles the special exit command, quiting the loop and thus the process.
@@ -75,7 +108,7 @@ let main _ =
         let entered = prompt prior
         if entered.Trim() = "exit" then ()
         else
-            processCommand entered
+            processEntered entered
             coreLoop (entered::prior)
 
     coreLoop []

@@ -10,6 +10,7 @@ open Builtins
 open Terminal
 open LineReader
 open System.Text
+open System.IO
 
 [<EntryPoint>]
 let main _ =
@@ -83,6 +84,13 @@ let main _ =
                 runCommand name args
             | Pipe -> 
                 lastResult
+            | Out path ->
+                try
+                    File.WriteAllText (path, s)
+                    Ok ""
+                with
+                    | ex -> 
+                        Error (sprintf "Error writing to out %s: %s" path ex.Message)
             | _ -> Ok ""
 
     /// Tries to follow what the user is wanting to do: run a builtin, or execute a process or execute code for example.
@@ -95,6 +103,7 @@ let main _ =
 
             let output = (Ok "", tokens) ||> List.fold processToken
             match output with 
+            | Ok "" -> ()
             | Ok s -> 
                 colour "Green"
                 printfn "%s" s 

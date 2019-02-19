@@ -49,38 +49,33 @@ let private joinBlanks (raw: string list) =
 let parts s =
     // The internal recursive function processes the input one char at a time via a list computation expression. 
     // This affords a good deal of control over the output, and is functional/immutable.
-    let rec parts soFar wrapped last remainder = 
-        [
-            if remainder = "" then
-                match wrapped with
-                | Some (c, _) -> yield (string c + soFar) // If a wrapping op was in progress, add the start token to be faithful to user input.
-                | None -> if soFar <> "" then yield soFar
-            else
-                let c, next = remainder.[0], remainder.[1..]
-                match c, wrapped with
-                | '(', None when soFar = "" ->
-                    let nextWrapped = Some ('(', 1)
-                    yield! parts soFar nextWrapped last next
-                | '(', Some ('(', n) -> // Bracket pushing.
-                    let nextWrapped = Some ('(', n + 1)
-                    yield! parts (soFar + "(") nextWrapped last next
-                | ')', Some ('(', 1) when last <> '\\' ->
-                    yield sprintf "(%s)" soFar
-                    yield! parts "" None last next
-                | ')', Some ('(', n) when last <> '\\' -> // Bracket popping.
-                    let nextWrapped = Some ('(', n - 1)
-                    yield! parts (soFar + ")") nextWrapped last next
-                | '\"', None when soFar = "" -> 
-                    yield! parts soFar (Some ('\"', 1)) last next // Quotes always have a 'stack' of 1, as they cant be pushed/popped like brackets.
-                | '\"', Some ('\"', 1) when last <> '\\' ->
-                    yield sprintf "\"%s\"" soFar
-                    yield! parts "" None last next
-                | ' ', None when last <> '\\' ->
-                    yield soFar
-                    yield! parts "" None last next
-                | _ -> 
-                    yield! parts (soFar + string c) wrapped c next
-        ]
+    let rec parts soFar wrapped last remainder =
+        if remainder = "" then
+            match wrapped with
+            | Some (c, _) -> [(string c + soFar)] // If a wrapping op was in progress, add the start token to be faithful to user input.
+            | None -> if soFar <> "" then [soFar] else []
+        else
+            let c, next = remainder.[0], remainder.[1..]
+            match c, wrapped with
+            | '(', None when soFar = "" ->
+                let nextWrapped = Some ('(', 1)
+                parts soFar nextWrapped last next
+            | '(', Some ('(', n) -> // Bracket pushing.
+                let nextWrapped = Some ('(', n + 1)
+                parts (soFar + "(") nextWrapped last next
+            | ')', Some ('(', 1) when last <> '\\' ->
+                sprintf "(%s)" soFar::parts "" None last next
+            | ')', Some ('(', n) when last <> '\\' -> // Bracket popping.
+                let nextWrapped = Some ('(', n - 1)
+                parts (soFar + ")") nextWrapped last next
+            | '\"', None when soFar = "" -> 
+                parts soFar (Some ('\"', 1)) last next // Quotes always have a 'stack' of 1, as they cant be pushed/popped like brackets.
+            | '\"', Some ('\"', 1) when last <> '\\' ->
+                sprintf "\"%s\"" soFar::parts "" None last next
+            | ' ', None when last <> '\\' ->
+                soFar::parts "" None last next
+            | _ -> 
+                parts (soFar + string c) wrapped c next
     let raw = parts "" None ' ' s
     if List.isEmpty raw then raw
     else joinBlanks raw // A final fold is used to combine whitespace blocks: e.g. "";"";"" becomes "   "
@@ -93,27 +88,27 @@ let rec tokens partlist =
     | head::remainder ->
         match head with 
         | "\r\n" -> 
-            Linebreak::(tokens remainder)
+            Linebreak::tokens remainder
         | s when String.IsNullOrWhiteSpace s ->
-            (Whitespace s.Length)::(tokens remainder)
+            Whitespace s.Length::tokens remainder
         | "|>" ->
-            Pipe::(tokens remainder)
+            Pipe::tokens remainder
         | ">>" ->
             match remainder with
             | [path] -> [Out path]
             | _ -> [Out ""]
         | s when s.[0] = '(' && (remainder = [] || s.[s.Length - 1] = ')') ->
-            (Code s)::(tokens remainder)
+            Code s::tokens remainder
         | command ->
             let rec findArgs list =
                 match list with
                 | [] | "|>"::_ | ">>"::_ -> []
                 | ""::remainder ->
-                    [ yield " "; yield! findArgs remainder]
+                    " "::findArgs remainder
                 | head::remainder -> 
-                    [ yield head; yield! findArgs remainder]
+                    head::findArgs remainder
             let args = findArgs remainder
-            (Command (command, args))::(tokens remainder.[args.Length..])
+            Command (command, args)::tokens remainder.[args.Length..]
 
 // Mutable version of the above. This was used first, during development, but the recursive version is arguably simpler.
 // The recursive version also has the advantage in that it doesn't require the incrementing of an index - something I consistently forgot

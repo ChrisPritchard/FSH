@@ -63,6 +63,7 @@ let main _ =
             | :? Win32Exception as ex -> // Even on linux/osx, this is the exception thrown.
                 Error (sprintf "%s: %s" fileName ex.Message)
     
+    /// Attempts to run either help, a builtin, or an external process based on the given command and args
     let runCommand command args =
         // Help (or ?) are special builtins, not part of the main builtin map (due to loading order).
         if command = "help" || command = "?" then
@@ -73,7 +74,19 @@ let main _ =
                 f args
             | None -> // If no builtin is found, try to run the users input as a execute process command.
                 launchProcess command args
-
+    
+    /// The implementation of the '>> filename' token. Takes the piped in content and saves it to a file.
+    let out content path = 
+        try
+            File.WriteAllText (path, content)
+            Ok ""
+        with
+            | ex -> 
+                Error (sprintf "Error writing to out %s: %s" path ex.Message)
+    
+    /// Handles running a given token, e.g. a command, pipe, code or out.
+    /// Bundles the result and passes it as a Result<string, string>, which will be printed if this is the last token,
+    /// Or fed to the next token in the chain if not.
     let processToken lastResult token =
         match lastResult with
         | Error _ -> lastResult
@@ -85,16 +98,11 @@ let main _ =
             | Pipe -> 
                 lastResult
             | Out path ->
-                try
-                    File.WriteAllText (path, s)
-                    Ok ""
-                with
-                    | ex -> 
-                        Error (sprintf "Error writing to out %s: %s" path ex.Message)
+                out s path                
             | _ -> Ok ""
 
-    /// Tries to follow what the user is wanting to do: run a builtin, or execute a process or execute code for example.
-    /// Will chain together piped results, attempting to feed the result of prior to the input of the next
+    /// Splits up what has been entered into a set of tokens, then runs each in turn feeding the result of the previous as the input to the next.
+    /// When complete, the result is printed to the Console out in green for success or red for error (or if success with no output, then nothing).
     let processEntered (s : string) =
         if String.IsNullOrWhiteSpace s then () // nothing specified so just loop
         else 

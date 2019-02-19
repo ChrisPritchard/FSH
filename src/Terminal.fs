@@ -87,6 +87,38 @@ let parts s =
 
 /// Tokens takes a set of parts (returned by previous method - a string array) and converts it into `operational tokens`.
 /// E.g. echo hello world |> (fun (s:string) -> s.ToUpper()) >> out.txt would become a [Command; Pipe; Code; Out]
+let rec tokens partlist = 
+    match partlist with
+    | [] -> []
+    | head::remainder ->
+        match head with 
+        | "\r\n" -> 
+            Linebreak::(tokens remainder)
+        | s when String.IsNullOrWhiteSpace s ->
+            (Whitespace s.Length)::(tokens remainder)
+        | "|>" ->
+            Pipe::(tokens remainder)
+        | ">>" ->
+            match remainder with
+            | [path] -> [Out path]
+            | _ -> [Out ""]
+        | s when s.[0] = '(' && (remainder = [] || s.[s.Length - 1] = ')') ->
+            (Code s)::(tokens remainder)
+        | command ->
+            let rec findArgs list =
+                match list with
+                | [] | "|>"::_ | ">>"::_ -> []
+                | ""::remainder ->
+                    [ yield " "; yield! findArgs remainder]
+                | head::remainder -> 
+                    [ yield head; yield! findArgs remainder]
+            let args = findArgs remainder
+            (Command (command, args))::(tokens remainder.[args.Length..])
+
+// Mutable version of the above. This was used first, during development, but the recursive version is arguably simpler.
+// The recursive version also has the advantage in that it doesn't require the incrementing of an index - something I consistently forgot
+// to do whenever I modified this, and therefore caused infinite loops :D
+(*
 let tokens partlist = 
     [
         let mutable i = 0
@@ -126,3 +158,4 @@ let tokens partlist =
                 ]
                 yield Command (command, args)
     ]
+*)

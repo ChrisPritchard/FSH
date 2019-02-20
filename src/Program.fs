@@ -86,23 +86,38 @@ let main _ =
         let source = 
             if code.EndsWith ')' then code.[1..code.Length-2]
             else code.[1..]
-        let toEval = 
-            if lastResult = "" then 
-                source 
-            elif lastResult.Contains "\r\n" then
-                lastResult.Split ([|"\r\n"|], StringSplitOptions.RemoveEmptyEntries)
-                |> String.concat "\";\"" 
-                |> fun lastResult -> sprintf "let piped = [|\"%s\"|] in (%s) piped" lastResult source
-            else 
-                sprintf "let piped = \"%s\" in (%s) piped" lastResult source
-        let (result, error) = fsi.EvalExpression toEval
-        if error.Length > 0 then 
-            Error (error |> Seq.map (fun e -> string e) |> String.concat "\r\n")
-        else
-            match result with
-            | Choice1Of2 (Some v) -> Ok (string v.ReflectionValue)
-            | Choice1Of2 None -> Ok ""
-            | Choice2Of2 ex -> Error ex.Message
+
+        let errorText error = error |> Seq.map (fun e -> string e) |> String.concat "\r\n"
+        if lastResult = "" then 
+            let (result, error) = fsi.EvalInteraction source
+            if error.Length > 0 then 
+                Error (errorText error)
+            else
+                match result with
+                | Choice1Of2 () -> 
+                    let (outResult, outError) = fsi.EvalExpression "it"
+                    match outError, outResult with
+                    | _, Choice1Of2 (Some v) -> 
+                        fsi.EvalInteraction "let it = \"\"" |> ignore // clear it
+                        Ok (string v.ReflectionValue)
+                    | _, _ -> Ok ""
+                | Choice2Of2 ex -> Error ex.Message
+        else 
+            let toEval = 
+                if lastResult.Contains "\r\n" then
+                    lastResult.Split ([|"\r\n"|], StringSplitOptions.RemoveEmptyEntries)
+                    |> String.concat "\";\"" 
+                    |> fun lastResult -> sprintf "let piped = [|\"%s\"|] in (%s) piped" lastResult source
+                else 
+                    sprintf "let piped = \"%s\" in (%s) piped" lastResult source
+            let (result, error) = fsi.EvalExpression toEval
+            if error.Length > 0 then 
+                Error (error |> Seq.map (fun e -> string e) |> String.concat "\r\n")
+            else
+                match result with
+                | Choice1Of2 (Some v) -> Ok (string v.ReflectionValue)
+                | Choice1Of2 None -> Ok ""
+                | Choice2Of2 ex -> Error ex.Message
 
     /// The implementation of the '>> filename' token. Takes the piped in content and saves it to a file.
     let out content path = 

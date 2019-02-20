@@ -86,7 +86,15 @@ let main _ =
         let source = 
             if code.EndsWith ')' then code.[1..code.Length-2]
             else code.[1..]
-        let toEval = if lastResult = "" then source else sprintf "let piped = \"%s\" in (%s) piped" lastResult source
+        let toEval = 
+            if lastResult = "" then 
+                source 
+            elif lastResult.Contains "\r\n" then
+                lastResult.Split ([|"\r\n"|], StringSplitOptions.RemoveEmptyEntries)
+                |> String.concat "\";\"" 
+                |> fun lastResult -> sprintf "let piped = [|\"%s\"|] in (%s) piped" lastResult source
+            else 
+                sprintf "let piped = \"%s\" in (%s) piped" lastResult source
         let (result, error) = fsi.EvalExpression toEval
         if error.Length > 0 then 
             Error (error |> Seq.map (fun e -> string e) |> String.concat "\r\n")

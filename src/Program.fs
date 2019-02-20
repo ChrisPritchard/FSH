@@ -3,20 +3,26 @@
 /// In addition, some ancillary functions like process launching are also defined.
 
 open System
+open System.Text
+open System.IO
 open System.Diagnostics
 open System.ComponentModel
 open Model
 open Builtins
 open Terminal
 open LineReader
-open System.Text
-open System.IO
+open Interactive
 
 [<EntryPoint>]
 let main _ =
 
     cursor false
+    colour "Magenta"
+    printfn " -- FSH: FSharp Shell -- "
     defaultColour ()
+    printf "starting FSI..." // booting FSI takes a short but noticeable amount of time
+    let fsi = new Fsi ()
+    printfn "done"
     printfn "For a list of commands type '?' or 'help'"
 
     /// Prints the prompt ('FSH' plus the working dir) and waits for then accepts input from the user.
@@ -41,6 +47,7 @@ let main _ =
                 UseShellExecute = false)
             |> fun i -> new Process (StartInfo = i)
                 
+        // all output is written into these internally mutable builders, and written out as the result of the expression
         let outBuilder = new StringBuilder ()
         let errorBuilder = new StringBuilder ()
 
@@ -50,7 +57,6 @@ let main _ =
         try
             op.Start () |> ignore
 
-            colour "Green"
             op.BeginOutputReadLine ()
             op.WaitForExit ()
             op.CancelOutputRead ()
@@ -75,6 +81,21 @@ let main _ =
             | None -> // If no builtin is found, try to run the users input as a execute process command.
                 launchProcess command args
     
+    /// Attempts to run code as an expression. If the last result is not empty, it is set as a value that is applied to the code as a function.
+    let runCode lastResult (code: string) =
+        let source = 
+            if code.EndsWith ')' then code.[1..code.Length-2]
+            else code.[1..]
+        let toEval = if lastResult = "" then source else sprintf "let piped = \"%s\" in (%s) piped" lastResult source
+        let (result, error) = fsi.EvalExpression toEval
+        if error.Length > 0 then 
+            Error (error |> Seq.map (fun e -> string e) |> String.concat "\r\n")
+        else
+            match result with
+            | Choice1Of2 (Some v) -> Ok (string v.ReflectionValue)
+            | Choice1Of2 None -> Ok ""
+            | Choice2Of2 ex -> Error ex.Message
+
     /// The implementation of the '>> filename' token. Takes the piped in content and saves it to a file.
     let out content path = 
         try
@@ -95,6 +116,8 @@ let main _ =
             | Command (name, args) ->
                 let args = args @ [s]
                 runCommand name args
+            | Code code ->
+                runCode s code
             | Pipe -> 
                 lastResult
             | Out path ->

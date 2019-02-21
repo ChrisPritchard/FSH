@@ -127,7 +127,6 @@ let main _ =
         else
             runExpression source lastResult
             
-
     /// The implementation of the '>> filename' token. Takes the piped in content and saves it to a file.
     let out content path = 
         try

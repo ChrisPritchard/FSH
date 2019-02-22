@@ -168,8 +168,11 @@ let readLine (prior: string list) =
         | _ ->
             let c = next.KeyChar
             if not (Char.IsControl c) then
-                let relPos = lastLineStart soFar + pos
-                reader priorIndex (soFar.[0..relPos-1] + string c + soFar.[relPos..]) (pos + 1)
+                if pos + startPos < Console.WindowWidth - 2 then
+                    let relPos = lastLineStart soFar + pos
+                    reader priorIndex (soFar.[0..relPos-1] + string c + soFar.[relPos..]) (pos + 1)
+                else
+                    reader priorIndex (soFar + string c + " \r\n ") 0
             else
                 reader priorIndex soFar pos
 

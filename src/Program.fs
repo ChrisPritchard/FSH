@@ -91,13 +91,16 @@ let main _ =
         if lastResult = "" then 
             fsi.EvalInteraction source
         else
+            // In the code below, the piped val is type annotated and piped into the expression
+            // This reduces the need for command line code to have type annotations for string.
             let toEval = 
                 if lastResult.Contains "\r\n" then
                     lastResult.Split ([|"\r\n"|], StringSplitOptions.RemoveEmptyEntries)
                     |> String.concat "\";\"" 
-                    |> fun lastResult -> sprintf "let piped = [|\"%s\"|] in (%s) piped" lastResult source
+                    |> fun lastResult -> sprintf "let (piped: string[]) = [|\"%s\"|] in piped |> (%s)" lastResult source
                 else 
-                    sprintf "let piped = \"%s\" in (%s) piped" lastResult source
+                    sprintf "let (piped: string) = \"%s\" in piped |> (%s)" lastResult source
+            // Without the type annotations above, you would need to write (fun (s:string) -> ...) rather than just (fun s -> ...)
             fsi.EvalExpression toEval
             
     /// The implementation of the '>> filename' token. Takes the piped in content and saves it to a file.

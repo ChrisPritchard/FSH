@@ -30,7 +30,11 @@ type Fsi () =
             Error (error |> Seq.map (fun e -> string e) |> String.concat "\r\n")
         else
             match result with
-            | Choice1Of2 (Some v) -> Ok (string v.ReflectionValue)
+            | Choice1Of2 (Some v) -> 
+                match v.ReflectionValue with
+                | :? string as s -> Ok s
+                | :? seq<string> as sa -> Ok (String.concat "\r\n" sa)
+                | o -> Ok (string o)
             | Choice1Of2 None -> Ok ""
             | Choice2Of2 ex -> Error ex.Message
 

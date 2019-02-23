@@ -161,18 +161,22 @@ let readLine (prior: string list) =
             let nextPos = (soFar.Length - lastLineStart soFar)
             reader priorIndex soFar nextPos
         // Tab is complex, in that it attempts to finish a path or command given the last token in soFar.
+        // Nothing is done however if the tab completion would exceed the maximum line length.
         | ConsoleKey.Tab when soFar <> "" ->
-            let (soFar, pos) = attemptTabCompletion soFar pos
-            reader priorIndex soFar pos
+            let (newSoFar, newPos) = attemptTabCompletion soFar pos
+            if pos + startPos <= Console.WindowWidth - 2 then
+                reader priorIndex newSoFar newPos
+            else
+                reader priorIndex soFar pos
         // Finally, if none of the above and the key pressed is not a control char (e.g. Alt, Esc), it is appended.
+        // Unless the line is already at max length, in which case nothing is done.
         | _ ->
             let c = next.KeyChar
-            if not (Char.IsControl c) then
-                if pos + startPos < Console.WindowWidth - 2 then
-                    let relPos = lastLineStart soFar + pos
-                    reader priorIndex (soFar.[0..relPos-1] + string c + soFar.[relPos..]) (pos + 1)
-                else
-                    reader priorIndex (soFar + string c + " \r\n ") 0
+            let lineStart = lastLineStart soFar
+            let maxLineLength = Console.WindowWidth - (if Console.CursorTop = startLine then 3 else 2)
+            if not (Char.IsControl c) && (soFar.Length - lineStart) + startPos < maxLineLength then
+                let relPos = lineStart + pos
+                reader priorIndex (soFar.[0..relPos-1] + string c + soFar.[relPos..]) (pos + 1)
             else
                 reader priorIndex soFar pos
 

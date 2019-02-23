@@ -4,16 +4,16 @@ FSH (_F_# _Sh_ell) is a shell like CMD, Powershell or Bash that, in addition to 
 
 To demonstrate what this means, using FSH, you could type a line like:
 
-	`echo "hello world" |> (fun (s:string) -> s.ToUpper()) >> result.txt`
+	`echo "hello world" |> (fun s -> s.ToUpper()) >> result.txt`
 
 Which would create a text file in the current directory called result.txt, containing the text `HELLO WORLD`
 
 For something more advanced, you could implement a simple 'grep' command (grep is not built in to FSH by default):
 
 	`(let grep (s:string) arr = 
-		Array.filter (fun (line:string) -> line.Contains(s)) arr)`
+		arr |> Array.filter (fun line -> line.Contains(s)))`
 
-Note that shift+enter will go to a new line, useful for code. Tabbing (four spaces) has to be entered manually.
+Note that shift+enter will go to a new line, useful for code. Tabbing (four spaces) has to be entered manually. Also, by piping arr on the second line, the line parameter does not need a type annotation.
 
 Then use this like:
 

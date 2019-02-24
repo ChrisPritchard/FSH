@@ -3,7 +3,6 @@
 /// In addition, some ancillary functions like process launching are also defined.
 
 open System
-open System.Text
 open System.IO
 open System.Diagnostics
 open System.ComponentModel
@@ -109,11 +108,7 @@ let main _ =
         match lastResult with
         | Error _ -> lastResult
         | Ok s ->
-            let output, out, error = 
-                if isLastToken then 
-                    consoleOutput, new StringBuilder(), new StringBuilder()
-                else 
-                    builderOutput ()
+            let output, out, error = if isLastToken then consoleOutput () else builderOutput ()
             match token with
             | Command (name, args) ->
                 let args = if s <> "" then args @ [s] else args

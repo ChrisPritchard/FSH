@@ -24,19 +24,35 @@ type Token =
 
 /// Output wraps two text writers: one for regular output and one for errors.
 /// It is passed to token evaluators (run command, code etc) to capture their output.
+/// Methods for constructing this are found below.
 type Output = {
     out: TextWriter
     error: TextWriter
 }
 
-/// ConsoleOutput creates an Output instance that outs/errors to the Console.
+/// Creates an Output instance that outs/errors to the Console.
 /// This is used for the final token in a command stream, printing the results to the user.
-let consoleOutput = {
-    out = Console.Out
-    error = Console.Error
-}
+/// Note the use of object expressions, to override the writeline methods so that the proper colour is set.
+let consoleOutput () = 
+    let out, error = new StringBuilder(), new StringBuilder()
+    {
+        out = 
+            {   
+                new StringWriter(out)
+                    with member __.WriteLine (s:string) = 
+                                Console.ForegroundColor <- ConsoleColor.Green
+                                Console.WriteLine s
+            }
+        error = 
+            {   
+                new StringWriter(error)
+                    with member __.WriteLine (s:string) = 
+                                Console.ForegroundColor <- ConsoleColor.Red
+                                Console.WriteLine s
+            }
+    }, out, error
 
-/// BuilderOutput creates an Output instance that outs/errors into string builders.
+/// Creates an Output instance that outs/errors into string builders.
 /// This is used for all tokens except the last in a command stream, so the output of each can be fed to the next.
 let builderOutput () = 
     let out, error = new StringBuilder(), new StringBuilder()

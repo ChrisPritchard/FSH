@@ -1,26 +1,11 @@
-﻿/// Helpers for console interaction: setting colours, parsing input into tokens etc.
-module Terminal
+﻿/// Methods for parsing a line of input into its constituent tokens and parts
+module LineParser
 
 open System
 open Model
 
 // Creates a string of whitespace, n characters long
 let whitespace n = new String(' ', n)
-
-/// Resets the interface to use the default font colour.
-let defaultColour () = 
-    Console.ForegroundColor <- ConsoleColor.Gray
-
-/// Sets the console foreground colour (font colour) to the colour specified by the given string,
-/// e.g. colour "Red" will set the foreground to ConsoleColor.Red.
-/// String parsing is only used because its more concise than using the built in enum accessor.
-let colour s = 
-    let consoleColour = Enum.Parse (typeof<ConsoleColor>, s, true) :?> ConsoleColor
-    Console.ForegroundColor <- consoleColour
-
-/// Controls cursor visibility. 
-/// The cursor should only be visible when accepting input from the user, and not when drawing the prompt, for example.
-let cursor b = Console.CursorVisible <- b
 
 /// Folds the given string list, joing ""'s into whitespace: "";"" becomes "  "
 let private joinBlanks (raw: string list) =

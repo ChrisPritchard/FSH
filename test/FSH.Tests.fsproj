@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Terminal.Parts.fs" />
-    <Compile Include="Terminal.Tokens.fs" />
+    <Compile Include="LineParser.Parts.fs" />
+    <Compile Include="LineParser.Tokens.fs" />
   </ItemGroup>
 
   <ItemGroup>

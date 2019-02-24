@@ -1,4 +1,4 @@
-﻿module Terminal.Parts
+﻿module LineParser.Parts
 
 open FsUnit
 open FsUnit.Xunit

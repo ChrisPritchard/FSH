@@ -6,8 +6,9 @@ module LineReader
 
 open System
 open System.IO
+open Constants
 open Builtins
-open Terminal
+open LineParser
 open Model
 
 /// For a set of strings, will return the common start string.
@@ -61,20 +62,20 @@ let writeTokens promptPos tokens =
     |> List.iter (fun token ->
         match token with
         | Command (s, args) -> 
-            colour "Yellow"
+            apply Colours.command
             printAligned s
-            defaultColour ()
+            apply Colours.argument
             args |> Seq.iter printAligned
         | Code s ->
-            colour "Cyan"
+            apply Colours.code
             printAligned s
         | Pipe ->
-            colour "Green"
+            apply Colours.pipe
             printAligned "|>"
         | Out s ->
-            colour "Green"
+            apply Colours.pipe
             printAligned ">>"
-            defaultColour ()
+            apply Colours.argument
             printAligned s
         | Whitespace n ->
             printAligned (whitespace n)
@@ -107,12 +108,12 @@ let readLine (prior: string list) =
 
         // By printing out the current content of the line after every char
         // implementing backspace and delete becomes easier.
-        cursor false
+        Console.CursorVisible <- false
         Console.CursorLeft <- startPos
         Console.CursorTop <- startLine
         printFormatted soFar
         Console.CursorLeft <- startPos + pos
-        cursor true
+        Console.CursorVisible <- true
         
         // Blocks here until a key is read.
         let next = Console.ReadKey true
@@ -122,6 +123,7 @@ let readLine (prior: string list) =
         // or, if none of the above, a character to append to the 'soFar' string.
         match next.Key with
         | ConsoleKey.Enter when next.Modifiers <> ConsoleModifiers.Shift ->
+            Console.CursorVisible <- false // As reading is done, Hide the cursor.
             printfn "" // Write a final newline.
             soFar
         // Enter with shift pressed adds a new line, aligned with the prompt position.

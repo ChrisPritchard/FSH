@@ -5,6 +5,7 @@ module Model
 open System
 open System.IO
 open System.Text
+open Constants
 
 /// Token is a DU used to tag parts of a read input.
 /// It is used for piping content, and cosmetically for colouring user input.
@@ -40,14 +41,14 @@ let consoleOutput () =
             {   
                 new StringWriter(out)
                     with member __.WriteLine (s:string) = 
-                                Console.ForegroundColor <- ConsoleColor.Green
+                                apply Colours.goodOutput
                                 Console.WriteLine s
             }
         error = 
             {   
                 new StringWriter(error)
                     with member __.WriteLine (s:string) = 
-                                Console.ForegroundColor <- ConsoleColor.Red
+                                apply Colours.errorOutput
                                 Console.WriteLine s
             }
     }, out, error

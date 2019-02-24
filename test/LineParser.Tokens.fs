@@ -1,4 +1,4 @@
-﻿module Terminal.Tokens
+﻿module LineParser.Tokens
 
 open FsUnit
 open FsUnit.Xunit

@@ -6,19 +6,20 @@ open System
 open System.IO
 open System.Diagnostics
 open System.ComponentModel
+open Constants
 open Model
 open Builtins
-open Terminal
+open LineParser
 open LineReader
 open Interactive
 
 [<EntryPoint>]
 let main _ =
 
-    cursor false
-    colour "Magenta"
+    Console.CursorVisible <- false
+    apply Colours.title
     printfn " -- FSH: FSharp Shell -- "
-    defaultColour ()
+    apply Colours.neutral
     printf "starting FSI..." // booting FSI takes a short but noticeable amount of time
     let fsi = new Fsi ()
     printfn "done"
@@ -26,13 +27,10 @@ let main _ =
 
     /// Prints the prompt ('FSH' plus the working dir) and waits for then accepts input from the user.
     let prompt prior = 
-        colour "Magenta"
-        printf "FSH %s> " (currentDir ())
-        cursor true
-        defaultColour ()
+        apply Colours.prompt
+        printf "%s %s> " promptName (currentDir ())
         // Here is called a special function from LineReader.fs that accepts tabs and the like.
         let read = readLine prior
-        cursor false
         read
    
     /// Attempts to run an executable (not a builtin like cd or dir) and to feed the result to the output.

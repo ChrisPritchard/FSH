@@ -35,7 +35,7 @@ To run on the command line, navigate to the **/src** directory and use the comma
 
 It was built with Visual Studio 2017 Community (with occasional work done in VS Code) so instead of the CLI, you could open the **FSH.sln** solution file and run using F5 in VS.
 
-There are also some XUnit/FsUnit tests defined under /test, there for testing various input scenarios through the parts/tokenisation functions. Run them (if you wish) via `dotnet test`
+There are also some XUnit/FsUnit tests defined under /test, there for testing various input scenarios through the parts/tokenisation functions. Run them (if you wish) via `dotnet test` in the **/test** directory.
 
 **Important**: This was built in a month, and shells are a lot more complicated than they look. There *are* bugs, but *hopefully* during casual use you won't find them :)
 
@@ -91,7 +91,7 @@ If someone wanted to take this, and extend it, they are free to do so: its under
 - Creating a shell, able to run its own commands and external executables.
 - Various folder and file manipulation techniques.
 - A custom ReadLine method, that supports advanced features like line shifting and history (defined in [LineReader.fs](/src/LineReader.fs))
-- String tokensisation and rendering (defined in [Terminal.fs](/src/Terminal.fs))
+- String tokensisation (defined in [LineParser.fs](/src/LineParser.fs))
 - Integrating F# Interactive into a project in a useful way.
 
 All code files are helpfully commented. Start with [Program.fs](/src/Program.fs) and follow its structure from there.

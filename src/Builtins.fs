@@ -11,13 +11,16 @@ open System.IO
 /// Returns the current process directory. By default this is where it was started, and can be changed with the cd builtin.
 let currentDir () = Directory.GetCurrentDirectory ()
 
+/// Clears the console window.
 let clear _ = 
     Console.Clear ()
     Ok ""
 
+/// Reads out the arguments passed into the output.
 let echo args = 
     Ok (sprintf "%s" (String.concat " " args))
 
+/// Lists the contents of the current directory.
 let dir args = 
     let searchPath = Path.Combine(currentDir (), if List.isEmpty args then "" else args.[0])
     let searchPattern = if List.length args < 2 then "*" else args.[1]
@@ -39,6 +42,7 @@ let dir args =
                 |> Seq.map (Path.GetFileName >> sprintf "%s")
         ] |> String.concat "\r\n" |> Ok
 
+/// Changes the curent process directory.
 let cd args =
     if List.isEmpty args then Error "no path specified"
     else
@@ -49,7 +53,8 @@ let cd args =
             Ok ""
         else
             Error "directory not found"
-            
+  
+/// Creates a new empty directory.
 let mkdir args =
     if List.isEmpty args then
         Error "no directory name speciifed"
@@ -61,6 +66,7 @@ let mkdir args =
             Directory.CreateDirectory path |> ignore
             Ok "directory created"
  
+/// Deletes a directory, if empty.
 let rmdir args =
     if List.isEmpty args then
         Error "no directory name speciifed"
@@ -74,6 +80,7 @@ let rmdir args =
             Directory.Delete path |> ignore
             Ok "directory deleted"
 
+/// Reads out the content of a file to the output.
 let cat args = 
     if List.isEmpty args then
         Error "no file specified"
@@ -82,6 +89,7 @@ let cat args =
     else
         Ok (File.ReadAllText args.[0])
 
+/// Copies a file into a new location.
 let cp args = 
     if List.length args <> 2 then
         Error "wrong number of arguments: please specify source and dest"
@@ -106,6 +114,7 @@ let cp args =
                 File.Copy (source, dest)
                 Ok "file copied"
 
+/// Moves a file to a new location.
 let mv args = 
     if List.length args <> 2 then
         Error "wrong number of arguments: please specify source and dest"
@@ -129,7 +138,8 @@ let mv args =
                 let dest = Path.Combine(dest, fileName)
                 File.Move (source, dest)
                 Ok "file moved"     
-                
+
+/// Removes a file or directory.             
 let rm args =
     if List.isEmpty args then
         Error "no target specified"
@@ -147,6 +157,7 @@ let rm args =
         else
             Error "file or directory does not exist"
 
+/// This list maps the text entered by the user to the implementation to be run, and the help text for the command.
 let builtins = 
     [
         "clear", (clear, "clears the console")
@@ -168,6 +179,7 @@ let builtins =
         "help", ((fun _ -> Ok ""), "same as ?, prints the builtin list, or the help of specific commands")
         "exit", ((fun _ -> Ok ""), "exits FSH")
     ] 
+/// The map is specifically used to match entered text to implementation.
 let builtinMap = 
     builtins 
     |> List.map (fun (commandName, (implementation, _)) -> commandName, implementation) 

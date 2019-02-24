@@ -45,6 +45,9 @@ let builderOutput () =
         error = new StringWriter(error)
     }, out, error
 
+/// Takes two string builders, one for regular output and one for errors (e.g. produced by builderOutput, above) and returns a Result.
+/// Additionally, does some cleanup: final errant new lines are trimmed away.
 let asResult out error = 
-    let error = string error
-    if error <> "" then Error error else Ok (string out)
+    let out = (string out).TrimEnd ([|'\r';'\n'|])
+    let error = (string error).TrimEnd ([|'\r';'\n'|])
+    if error <> "" then Error error else Ok out

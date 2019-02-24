@@ -95,13 +95,12 @@ let main _ =
             fsi.EvalExpression toEval output
             
     /// The implementation of the '>> filename' token. Takes the piped in content and saves it to a file.
-    let out content path = 
+    let runOut content path output = 
         try
             File.WriteAllText (path, content)
-            Ok ""
         with
             | ex -> 
-                Error (sprintf "Error writing to out %s: %s" path ex.Message)
+                output.error.WriteLine (sprintf "Error writing to out %s: %s" path ex.Message)
     
     /// Handles running a given token, e.g. a command, pipe, code or out.
     /// Output is printed into string builders if intermediate tokens, or to the console out if the last.
@@ -110,29 +109,23 @@ let main _ =
         match lastResult with
         | Error _ -> lastResult
         | Ok s ->
+            let output, out, error = 
+                if isLastToken then 
+                    consoleOutput, new StringBuilder(), new StringBuilder()
+                else 
+                    builderOutput ()
             match token with
             | Command (name, args) ->
                 let args = if s <> "" then args @ [s] else args
-                if isLastToken then 
-                    runCommand name args consoleOutput
-                    Ok ""
-                else
-                    let output, out, error = builderOutput ()
-                    runCommand name args output
-                    asResult out error
+                runCommand name args output
             | Code code ->
-                if isLastToken then
-                    runCode s code consoleOutput
-                    Ok ""
-                else
-                    let output, out, error = builderOutput ()
-                    runCode s code output
-                    asResult out error
+                runCode s code output
             | Pipe -> 
-                lastResult // last result takes the last val and adds it to the next val
+                out.Append s |> ignore // last result takes the last val and sets it as the next val
             | Out path ->
-                out s path                
-            | _ -> Ok ""
+                runOut s path output            
+            | _ -> () // The Token DU also includes presentation only tokens, like linebreaks and whitespace. These are ignored.
+            asResult out error
 
     /// Splits up what has been entered into a set of tokens, then runs each in turn feeding the result of the previous as the input to the next.
     /// The last token to be processed prints directly to the console out.

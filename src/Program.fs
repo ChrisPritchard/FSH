@@ -121,7 +121,7 @@ let main _ =
         | Ok s ->
             match token with
             | Command (name, args) ->
-                let args = args @ [s]
+                let args = if s <> "" then args @ [s] else args
                 runCommand name args
             | Code code ->
                 runCode s code

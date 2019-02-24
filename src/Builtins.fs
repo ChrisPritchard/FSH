@@ -7,6 +7,8 @@ module Builtins
 
 open System
 open System.IO
+open System.Collections.Generic
+open System.Collections
 
 /// Returns the current process directory. By default this is where it was started, and can be changed with the cd builtin.
 let currentDir () = Directory.GetCurrentDirectory ()
@@ -157,6 +159,20 @@ let rm args =
         else
             Error "file or directory does not exist"
 
+/// Enumerates all environment variables, or reads/sets a single value.
+let env args = 
+    if List.isEmpty args then
+        Environment.GetEnvironmentVariables ()
+        |> Seq.cast<DictionaryEntry>
+        |> Seq.map (fun d -> sprintf "%s=%s" (unbox<string> d.Key) (unbox<string> d.Value))
+        |> String.concat "\r\n"
+        |> Ok
+    else if args.Length = 1 then
+        Ok (Environment.GetEnvironmentVariable args.[0])
+    else
+        Environment.SetEnvironmentVariable (args.[0], args.[1])
+        Ok ""
+
 /// This list maps the text entered by the user to the implementation to be run, and the help text for the command.
 let builtins = 
     [
@@ -172,6 +188,7 @@ let builtins =
         "mv", (mv, "moves the source file to the destination folder or filepath")
         "rm", (rm, "same as del, deletes the target file or empty directory")
         "del", (rm, "same as rm, deletes the target file or empty directory")
+        "env", (env, "either lists all env vars, reads a specific var, or sets a var to a value")
         // The following three special builtins are here so that help can access their content.
         // However they have no implementation, as they are invoked by the coreloop and processCommand methods 
         // in Program.fs rather than via the normal builtin execution process.
@@ -184,6 +201,9 @@ let builtinMap =
     builtins 
     |> List.map (fun (commandName, (implementation, _)) -> commandName, implementation) 
     |> Map.ofList
+
+// For the above code, the reason why the map and list is seperate is that a map is ordered by its keys.
+// For help, the order of builtin's is important and is preserved in the list.
 
 /// Help provides helptext for a given builtin (including itself).
 /// It is defined after the builtin map, as it needs to read from the map to perform its function.

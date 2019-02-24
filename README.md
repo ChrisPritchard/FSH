@@ -1,6 +1,6 @@
 # FSH
 
-FSH (**F**# **Sh**ell) is a 'shell', like CMD, Powershell or Bash, entirely written in F#.
+FSH (**F**# **Sh**ell - pronounced like 'fish') is a shell, like CMD, Powershell or Bash, entirely written in F#.
 
 ## Basic Interactions
 
@@ -22,6 +22,8 @@ For something more advanced, you could implement a simple 'grep' command (grep i
 Then use this like:
 
 	ls |> (grep ".dll")
+
+This will list all dll files in the current directory, one per line.
 
 ## Installing and Running
 

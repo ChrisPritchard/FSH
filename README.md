@@ -2,6 +2,8 @@
 
 FSH (**F**# **Sh**ell) is a 'shell', like CMD, Powershell or Bash, entirely written in F#.
 
+## Basic Interactions
+
 In addition to normal shell features (folder navigation, creation, deletion, echo etc.), FSH also supports piping and F# interactive. You can run code to declare F# functions, then use those functions as part of a piping operation with the other builtin commands. You can also just declare anonymous expressions for piping.
 
 To demonstrate what this means, using FSH, you could type a line like:
@@ -15,7 +17,7 @@ For something more advanced, you could implement a simple 'grep' command (grep i
 	`(let grep (s:string) arr = 
 		arr |> Array.filter (fun line -> line.Contains(s)))`
 
-(Note that shift+enter will go to a new line, useful for code. Tabbing (four spaces) has to be entered manually. Also, by piping arr on the second line, the line parameter does not need a type annotation.)
+(**Note** that shift+enter will go to a new line, useful for code. Tabbing (four spaces) has to be entered manually. Also, by piping arr on the second line, the line parameter does not need a type annotation.)
 
 Then use this like:
 
@@ -27,9 +29,9 @@ FSH has been built using **.NET Core 2.2**. To build, you will need to install t
 
 It has been tested in Linux (via Ubuntu 18 under WSL) and on Max OSX, without issues.
 
-To run just using the SDK on the command line, navigate to the **/src** directory and use the command `dotnet run`
+To run on the command line, navigate to the **/src** directory and use the command `dotnet run`
 
-It was built in Visual Studio 2017 Community, with occasional work using VS Code, so alternatively to the CLI you could open the **FSH.sln** solution file and run using F5 in VS.
+It was built with Visual Studio 2017 Community (with occasional work done in VS Code) so instead of the CLI, you could open the **FSH.sln** solution file and run using F5 in VS.
 
 ## "Builtins"
 
@@ -61,7 +63,14 @@ Normally the piped value will be a string, as above. However if the prior result
 
 An expression can return either a value or a string array. If the latter, than it will be concatenated with line breaks for output printing. Otherwise it is converted to a string.
 
-Code is run in [Interactive.fs](/src/Interactive.fs)
+### Interactions and 'it'
+
+By default, FSI will evaluate an interaction and return `unit` if successful. 
+In order to make interactions useful as the first token of a piped expression, after an interaction is evaluated FSH will attempt to evaluate the expression 'it' and send its value on to the next token (or console out, if the last expression).
+
+If this evaluation fails, then an empty string is passed along. Otherwise, if found, then it is *set* to "", before the value is passed along. This is so that it is cleared in case the use of later interaction doesnt overwrite it.
+
+Code is run in [Interactive.fs](/src/Interactive.fs), which wraps FSI. For further details please follow the code in there.
 
 ## Why?
 
@@ -75,8 +84,8 @@ If someone wanted to take this, and extend it, they are free to do so: its under
 
 - Creating a shell, able to run its own commands and external executables.
 - Various folder and file manipulation techniques.
-- A custom ReadLine method, that supports advanced features like line shifting and history (defined in [LineReader.fs](/src/LineReader.fs)
-- String tokensisation and rendering (defined in [Terminal.fs](/src/Terminal.fs)
+- A custom ReadLine method, that supports advanced features like line shifting and history (defined in [LineReader.fs](/src/LineReader.fs))
+- String tokensisation and rendering (defined in [Terminal.fs](/src/Terminal.fs))
 - Integrating F# Interactive into a project in a useful way.
 
 All code files are helpfully commented. Start with [Program.fs](/src/Program.fs) and follow its structure from there.

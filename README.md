@@ -8,20 +8,20 @@ In addition to normal shell features (folder navigation, creation, deletion, ech
 
 To demonstrate what this means, using FSH, you could type a line like:
 
-	`echo "hello world" |> (fun s -> s.ToUpper()) >> result.txt`
+	echo "hello world" |> (fun s -> s.ToUpper()) >> result.txt
 
 Which would create a text file in the current directory called result.txt, containing the text `HELLO WORLD`
 
 For something more advanced, you could implement a simple 'grep' command (grep is not built in to FSH by default):
 
-	`(let grep (s:string) arr = 
-		arr |> Array.filter (fun line -> line.Contains(s)))`
+	(let grep (s:string) arr = 
+		arr |> Array.filter (fun line -> line.Contains(s)))
 
 (**Note** that shift+enter will go to a new line, useful for code. Tabbing (four spaces) has to be entered manually. Also, by piping arr on the second line, the line parameter does not need a type annotation.)
 
 Then use this like:
 
-	`ls |> (grep ".dll")`
+	ls |> (grep ".dll")
 
 ## Installing and Running
 
@@ -32,6 +32,10 @@ It has been tested in Linux (via Ubuntu 18 under WSL) and on Max OSX, without is
 To run on the command line, navigate to the **/src** directory and use the command `dotnet run`
 
 It was built with Visual Studio 2017 Community (with occasional work done in VS Code) so instead of the CLI, you could open the **FSH.sln** solution file and run using F5 in VS.
+
+There are also some XUnit/FsUnit tests defined under /test, there for testing various input scenarios through the parts/tokenisation functions. Run them (if you wish) via `dotnet test`
+
+**Important**: This was built in a month, and shells are a lot more complicated than they look. There *are* bugs, but *hopefully* during casual use you won't find them :)
 
 ## "Builtins"
 

@@ -41,7 +41,7 @@ There are also some XUnit/FsUnit tests defined under /test, there for testing va
 
 ## "Builtins"
 
-Any shell has a number of commands that you can run, aside from things like external processes or in the case of FSH, code. FSH supports a limited set of these, all with basic but effective functionality. To get a list of these type **help** or **?**. The most heavily used are:
+Any shell has a number of commands that you can run, aside from things like external processes or in the case of FSH, code. FSH supports a limited set of these, all with basic but effective functionality. To get a list of these type **help** or **?**. Some common examples are:
 
 - **cd [path]**: change the current directory. E.g. `cd /` or `cd ..` to go to root or one directory up.
 - **echo [text]**: prints the arguments out as text - quite useful for piping
@@ -59,11 +59,11 @@ Code expressions are written by wrapping code with `(` and `)`. Only the outer m
 If a code expression is the first expression on a line, then it is treated as a **FSI Interaction**. Otherwise it is treated as a **FSI Expression**. What is the difference?
 
 - A FSI Interaction can be any valid F# code. `let x = 10`, `50 * 5`, `let grep (s: string) arr = arr |> Array.filter (fun line -> line.Contains(s))` are all valid interactions.
-- A FSI Expression must be F# that evaluates to a value. `let x = 10` is not a valid expression, but `let x = 10 in x` *is* valid as it will evaluate to 10. Likewise, defining functions like `let grep ...` above is not valid unless it is immediately used in a `in` expression, like `let grep... in grep ".dll"` (which also locally scope grep, making it not usable again without being redefined).
+- A FSI Expression must be F# that evaluates to a value. `let x = 10` is not a valid expression, but `let x = 10 in x` *is* valid as it will evaluate to 10. Likewise, defining functions like `let grep ...` above is not valid unless it is immediately used in a `in` expression, like `let grep... in grep ".dll"` (which will also locally scope grep, making it not usable again without being redefined).
 
 ### Piped values
 
-Because expressions are only run when there is a value to be piped into them, they have the additional contraint that they must support a parameter that matches the piped value (either a string or a string array). The reason is that in `echo "test" |> (fun s -> s.ToUpper())`, the code that is passed to the hidden FSI process is actually `let piped = "test" in piped |> (fun s -> s.ToUpper())`
+Because expressions are only run when there is a value to be piped into them, in FSH they have the additional contraint that they must support a parameter that matches the piped value (either a string or a string array). The reason is that in `echo "test" |> (fun s -> s.ToUpper())`, the code that is passed to the hidden FSI process is actually `let piped = "test" in piped |> (fun s -> s.ToUpper())`
 
 Normally the piped value will be a string, as above. However if the prior result contains line breaks, it will be split into an array. E.g. ls or dir, if used on a directory with more than one file, will produce a piped string array for code expressions to use.
 
@@ -74,7 +74,7 @@ An expression can return either a value or a string array. If the latter, than i
 By default, FSI will evaluate an interaction and return `unit` if successful. 
 In order to make interactions useful as the first token of a piped expression, after an interaction is evaluated FSH will attempt to evaluate the expression 'it' and send its value on to the next token (or console out, if the last expression).
 
-If this evaluation fails, then an empty string is passed along. Otherwise, if found, then it is *set* to "", before the value is passed along. This is so that it is cleared in case the use of later interaction doesnt overwrite it.
+If this evaluation fails, then an empty string is passed along. Otherwise, if found, then 'it' is *set* to "", before the value is passed along. This is so that 'it', is cleared in case the use of later interaction doesn't overwrite it.
 
 Code is run in [Interactive.fs](/src/Interactive.fs), which wraps FSI. For further details please follow the code in there.
 
@@ -82,11 +82,11 @@ Code is run in [Interactive.fs](/src/Interactive.fs), which wraps FSI. For furth
 
 This has been developed for the 2019 F# Applied Competition, as an educational project, over the course of about a month. 
 
-The idea came from PowerShell, which as a developer who works primarily on windows machines, is my default shell. However, PowerShell syntax is very verbose, especially when using .NET code in line: a shell with a simpler, more bash or cmd-like syntax combined with the light syntax and type inferrence of F# seemed like a good thing to make into a proof-of-concept.
+The idea came from PowerShell, which as a developer who works primarily on windows machines, is my default shell. However, PowerShell syntax is very verbose, especially when using .NET code in-line; a shell with a simpler, more bash- or cmd-like syntax combined with the light syntax and type inferrence of F# seemed like a good thing to make into a proof-of-concept.
 
 As it stands, FSH is not really intended to be used in anger: while it supports a host of builtins, and is quite extensible with its FSI integration, it is missing a lot of features like, for example, numerous flags on the default builtins (ls/dir just list the local directory, but don't for example, have any flags to provide more info or multi page support etc).
 
-If someone wanted to take this, and extend it, they are free to do so: its under MIT. But ultimately, FSH serves as an educational example of:
+If someone wanted to take this, and extend it, they are free to do so: its under MIT. But primarily FSH serves as an educational example of:
 
 - Creating a shell, able to run its own commands and external executables.
 - Various folder and file manipulation techniques.

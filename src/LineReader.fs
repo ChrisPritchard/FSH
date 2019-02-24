@@ -47,9 +47,9 @@ let private attemptTabCompletion soFar pos =
 
 /// Writes out a list of tokens to the output, coloured appropriately.
 /// This also ensures the print out is aligned with the prompt
-let writeTokens promptPos tokens = 
+let private writeTokens promptPos tokens = 
     let align () = if Console.CursorLeft < promptPos then Console.CursorLeft <- promptPos
-    let clearLine () = printf "%s" (whitespace (Console.WindowWidth - Console.CursorLeft - 1))
+    let clearLine () = printf "%s" (new String(' ', Console.WindowWidth - Console.CursorLeft - 1))
     let printAligned (s: string) = 
         let lines = s.Split "\r\n"
         lines |> Array.iteri (fun i line -> 
@@ -78,7 +78,7 @@ let writeTokens promptPos tokens =
             apply Colours.argument
             printAligned s
         | Whitespace n ->
-            printAligned (whitespace n)
+            printAligned (new String(' ', n))
         | Linebreak ->
             clearLine ()
             printfn "")

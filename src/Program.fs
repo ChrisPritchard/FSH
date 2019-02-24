@@ -144,6 +144,7 @@ let main _ =
             processEntered entered
             coreLoop (entered::prior)
 
+    // Entry invocation of FSH!
     coreLoop []
 
     0

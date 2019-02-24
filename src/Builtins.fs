@@ -14,15 +14,15 @@ open Model
 let currentDir () = Directory.GetCurrentDirectory ()
 
 /// Clears the console window.
-let clear _ _ = 
+let private clear _ _ = 
     Console.Clear ()
 
 /// Reads out the arguments passed into the output.
-let echo args output = 
+let private echo args output = 
     output.out.WriteLine (sprintf "%s" (String.concat " " args))
 
 /// Lists the contents of the current directory.
-let dir args output = 
+let private dir args output = 
     let searchPath = Path.Combine(currentDir (), if List.isEmpty args then "" else args.[0])
     let searchPattern = if List.length args < 2 then "*" else args.[1]
 
@@ -43,7 +43,7 @@ let dir args output =
         |> Seq.iter output.out.WriteLine
 
 /// Changes the curent process directory.
-let cd args output =
+let private cd args output =
     if List.isEmpty args then output.error.WriteLine "no path specified"
     else
         let newPath = Path.Combine (currentDir (), args.[0])
@@ -54,7 +54,7 @@ let cd args output =
             output.error.WriteLine "directory not found"
   
 /// Creates a new empty directory.
-let mkdir args output =
+let private mkdir args output =
     if List.isEmpty args then
         output.error.WriteLine "no directory name speciifed"
     else
@@ -66,7 +66,7 @@ let mkdir args output =
             output.out.WriteLine "directory created"
  
 /// Deletes a directory, if empty.
-let rmdir args output =
+let private rmdir args output =
     if List.isEmpty args then
         output.error.WriteLine "no directory name speciifed"
     else
@@ -80,7 +80,7 @@ let rmdir args output =
             output.out.WriteLine "directory deleted"
 
 /// Reads out the content of a file to the output.
-let cat args output = 
+let private cat args output = 
     if List.isEmpty args then
         output.error.WriteLine "no file specified"
     elif not (File.Exists args.[0]) then
@@ -89,7 +89,7 @@ let cat args output =
         output.out.WriteLine (File.ReadAllText args.[0])
 
 /// Copies a file into a new location.
-let cp args output = 
+let private cp args output = 
     if List.length args <> 2 then
         output.error.WriteLine "wrong number of arguments: please specify source and dest"
     else
@@ -114,7 +114,7 @@ let cp args output =
                 output.out.WriteLine "file copied"
 
 /// Moves a file to a new location.
-let mv args output = 
+let private mv args output = 
     if List.length args <> 2 then
         output.error.WriteLine "wrong number of arguments: please specify source and dest"
     else
@@ -139,7 +139,7 @@ let mv args output =
                 output.out.WriteLine "file moved"     
 
 /// Removes a file or directory.             
-let rm args output =
+let private rm args output =
     if List.isEmpty args then
         output.error.WriteLine "no target specified"
     else
@@ -157,7 +157,7 @@ let rm args output =
             output.error.WriteLine "file or directory does not exist"
 
 /// Enumerates all environment variables, or reads/sets a single value.
-let env args output = 
+let private env args output = 
     if List.isEmpty args then
         Environment.GetEnvironmentVariables ()
         |> Seq.cast<DictionaryEntry>
@@ -169,7 +169,7 @@ let env args output =
         Environment.SetEnvironmentVariable (args.[0], args.[1])
 
 /// This list maps the text entered by the user to the implementation to be run, and the help text for the command.
-let builtins = 
+let private builtins = 
     [
         "clear", (clear, "clears the console")
         "echo", (echo, "prints out all text following the echo command to output")

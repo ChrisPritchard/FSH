@@ -9,6 +9,7 @@ open Model
 /// It provides several methods to interact with FSI or its streams in a simple fashion from outside the class.
 type Fsi () =
     
+    // These streams and reader/writers are needed to instantiate FSI, but are otherwise not used.
     let inStream = new MemoryStream ()
     let outStream = new MemoryStream ()
     let errorStream = new MemoryStream ()

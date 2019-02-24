@@ -4,9 +4,6 @@ module LineParser
 open System
 open Model
 
-// Creates a string of whitespace, n characters long
-let whitespace n = new String(' ', n)
-
 /// Folds the given string list, joing ""'s into whitespace: "";"" becomes "  "
 let private joinBlanks (raw: string list) =
     let parsed, final = 

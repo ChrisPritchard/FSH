@@ -1,5 +1,5 @@
 ﻿/// FSH has very little need for its own types, as its largely about translating user input into direct actions.
-/// However, where custom types are needed they are defined here.
+/// However, where custom types are needed they are defined here, along with closely related methods.
 module Model
 
 open System

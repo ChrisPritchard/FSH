@@ -37,7 +37,7 @@ let main _ =
         read
    
     /// Attempts to run an executable (not a builtin like cd or dir) and to feed the result to the output.
-    let launchProcess fileName args =
+    let launchProcess fileName args (output: Output) =
         let op = 
             new ProcessStartInfo(fileName, args |> String.concat " ",
                 CreateNoWindow = true,
@@ -46,13 +46,9 @@ let main _ =
                 RedirectStandardError = true,
                 UseShellExecute = false)
             |> fun i -> new Process (StartInfo = i)
-                
-        // all output is written into these internally mutable builders, and written out as the result of the expression
-        let outBuilder = new StringBuilder ()
-        let errorBuilder = new StringBuilder ()
 
-        op.OutputDataReceived.Add(fun e -> outBuilder.AppendLine e.Data |> ignore)
-        op.ErrorDataReceived.Add(fun e -> errorBuilder.AppendLine e.Data |> ignore)
+        op.OutputDataReceived.Add(fun e -> output.out.WriteLine e.Data |> ignore)
+        op.ErrorDataReceived.Add(fun e -> output.error.WriteLine e.Data |> ignore)
 
         try
             op.Start () |> ignore
@@ -60,36 +56,31 @@ let main _ =
             op.BeginOutputReadLine ()
             op.WaitForExit ()
             op.CancelOutputRead ()
-
-            if errorBuilder.Length <> 0 then 
-                Error (errorBuilder.ToString()) 
-            else 
-                Ok (outBuilder.ToString())
         with
             | :? Win32Exception as ex -> // Even on linux/osx, this is the exception thrown.
-                Error (sprintf "%s: %s" fileName ex.Message)
+                output.error.WriteLine (sprintf "%s: %s" fileName ex.Message)
     
     /// Attempts to run either help, a builtin, or an external process based on the given command and args
-    let runCommand command args =
+    let runCommand command args (output: Output) =
         // Help (or ?) are special builtins, not part of the main builtin map (due to loading order).
         if command = "help" || command = "?" then
-            help args
+            help args output
         else
             match Map.tryFind command builtinMap with
             | Some f -> 
-                f args
+                f args output
             | None -> // If no builtin is found, try to run the users input as a execute process command.
-                launchProcess command args
+                launchProcess command args output
 
     /// Attempts to run code as an expression or interaction. 
     /// If the last result is not empty, it is set as a value that is applied to the code as a function.
-    let runCode lastResult (code: string) =
+    let runCode lastResult (code: string) output =
         let source = 
             if code.EndsWith ')' then code.[1..code.Length-2]
             else code.[1..]
 
         if lastResult = "" then 
-            fsi.EvalInteraction source
+            fsi.EvalInteraction source output
         else
             // In the code below, the piped val is type annotated and piped into the expression
             // This reduces the need for command line code to have type annotations for string.
@@ -101,7 +92,7 @@ let main _ =
                 else 
                     sprintf "let (piped: string) = \"%s\" in piped |> (%s)" lastResult source
             // Without the type annotations above, you would need to write (fun (s:string) -> ...) rather than just (fun s -> ...)
-            fsi.EvalExpression toEval
+            fsi.EvalExpression toEval output
             
     /// The implementation of the '>> filename' token. Takes the piped in content and saves it to a file.
     let out content path = 
@@ -113,18 +104,30 @@ let main _ =
                 Error (sprintf "Error writing to out %s: %s" path ex.Message)
     
     /// Handles running a given token, e.g. a command, pipe, code or out.
-    /// Bundles the result and passes it as a Result<string, string>, which will be printed if this is the last token,
-    /// Or fed to the next token in the chain if not.
-    let processToken lastResult token =
+    /// Output is printed into string builders if intermediate tokens, or to the console out if the last.
+    /// In this way, the last token can print in real time.
+    let processToken isLastToken lastResult token =
         match lastResult with
         | Error _ -> lastResult
         | Ok s ->
             match token with
             | Command (name, args) ->
                 let args = if s <> "" then args @ [s] else args
-                runCommand name args
+                if isLastToken then 
+                    runCommand name args consoleOutput
+                    Ok ""
+                else
+                    let output, out, error = builderOutput ()
+                    runCommand name args output
+                    asResult out error
             | Code code ->
-                runCode s code
+                if isLastToken then
+                    runCode s code consoleOutput
+                    Ok ""
+                else
+                    let output, out, error = builderOutput ()
+                    runCode s code output
+                    asResult out error
             | Pipe -> 
                 lastResult // last result takes the last val and adds it to the next val
             | Out path ->
@@ -132,22 +135,19 @@ let main _ =
             | _ -> Ok ""
 
     /// Splits up what has been entered into a set of tokens, then runs each in turn feeding the result of the previous as the input to the next.
-    /// When complete, the result is printed to the Console out in green for success or red for error (or if success with no output, then nothing).
+    /// The last token to be processed prints directly to the console out.
     let processEntered (s : string) =
         if String.IsNullOrWhiteSpace s then () // nothing specified so just loop
         else 
             let parts = parts s
             let tokens = tokens parts
+            let lastToken = List.last tokens
 
-            let output = (Ok "", tokens) ||> List.fold processToken
-            match output with 
-            | Ok "" -> ()
-            | Ok s -> 
-                colour "Green"
-                printfn "%s" s 
-            | Error s -> 
-                colour "Red"
-                printfn "%s" s 
+            // The last token prints directly to the console out, and therefore the final result is ignored.
+            (Ok "", tokens) 
+            ||> List.fold (fun lastResult token -> 
+                processToken (token = lastToken) lastResult token)
+            |> ignore
 
     /// The coreloop waits for input, runs that input, and repeats. 
     /// It also handles the special exit command, quiting the loop and thus the process.

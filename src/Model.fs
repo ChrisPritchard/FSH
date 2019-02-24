@@ -2,6 +2,10 @@
 /// However, where custom types are needed they are defined here.
 module Model
 
+open System
+open System.IO
+open System.Text
+
 /// Token is a DU used to tag parts of a read input.
 /// It is used for piping content, and cosmetically for colouring user input.
 type Token = 
@@ -17,3 +21,30 @@ type Token =
     | Whitespace of length:int
     /// Like whitespace, is used for formatting mostly
     | Linebreak 
+
+/// Output wraps two text writers: one for regular output and one for errors.
+/// It is passed to token evaluators (run command, code etc) to capture their output.
+type Output = {
+    out: TextWriter
+    error: TextWriter
+}
+
+/// ConsoleOutput creates an Output instance that outs/errors to the Console.
+/// This is used for the final token in a command stream, printing the results to the user.
+let consoleOutput = {
+    out = Console.Out
+    error = Console.Error
+}
+
+/// BuilderOutput creates an Output instance that outs/errors into string builders.
+/// This is used for all tokens except the last in a command stream, so the output of each can be fed to the next.
+let builderOutput () = 
+    let out, error = new StringBuilder(), new StringBuilder()
+    {
+        out = new StringWriter(out)
+        error = new StringWriter(error)
+    }, out, error
+
+let asResult out error = 
+    let error = string error
+    if error <> "" then Error error else Ok (string out)

@@ -7,12 +7,9 @@ open Model
 // Creates a string of whitespace, n characters long
 let whitespace n = new String(' ', n)
 
-/// The starting console colour, before it is overriden by prompts, outputs and help for example.
-let originalColour = ConsoleColor.Gray
-
 /// Resets the interface to use the default font colour.
 let defaultColour () = 
-    Console.ForegroundColor <- originalColour
+    Console.ForegroundColor <- ConsoleColor.Gray
 
 /// Sets the console foreground colour (font colour) to the colour specified by the given string,
 /// e.g. colour "Red" will set the foreground to ConsoleColor.Red.

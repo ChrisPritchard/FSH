@@ -103,7 +103,8 @@ let readLine (prior: string list) =
         let lastLineBreak = soFar.LastIndexOf("\r\n")
         if lastLineBreak = -1 then 0 else lastLineBreak + 2
 
-    // This recursively prompts for input from the user, producing a final string result on the reception of the Enter key.
+    /// This recursively prompts for input from the user, producing a final string result on the reception of the Enter key.
+    /// As its recursive call is always the last statement, this code is tail recursive. 
     let rec reader priorIndex (soFar: string) pos =
 
         // By printing out the current content of the line after every char

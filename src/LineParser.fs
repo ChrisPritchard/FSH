@@ -25,69 +25,74 @@ let private joinBlanks (raw: string list) =
 
 /// Splits up a string into tokens, accounting for escaped spaces and quote/code wrapping,
 /// e.g. '"hello" world "this is a" test\ test' would be processed as ["hello";"world";"this is a";"test test"].
+/// Note the use of an inner function and the 'soFarPlus' accumulator: this ensures the recursion is 'tail recursive', by making the recursive call the final call of the function.
+/// Even though this is likely not necessary for command line parsing, its still a good technique to learn to avoid unexpected stack overflows.
 let parts s =
     // The internal recursive function processes the input one char at a time via a list computation expression. 
     // This affords a good deal of control over the output, and is functional/immutable.
-    let rec parts soFar wrapped last remainder =
+    let rec parts soFar wrapped last remainder soFarPlus =
         if remainder = "" then
             match wrapped with
-            | Some (c, _) -> [(string c + soFar)] // If a wrapping op was in progress, add the start token to be faithful to user input.
-            | None -> if soFar <> "" then [soFar] else []
+            | Some (c, _) -> soFarPlus [(string c + soFar)] // If a wrapping op was in progress, add the start token to be faithful to user input.
+            | None -> soFarPlus (if soFar <> "" then [soFar] else [])
         else
             let c, next = remainder.[0], remainder.[1..]
             match c, wrapped with
             | '(', None when soFar = "" ->
                 let nextWrapped = Some ('(', 1)
-                parts soFar nextWrapped last next
+                parts soFar nextWrapped last next soFarPlus
             | '(', Some ('(', n) -> // Bracket pushing.
                 let nextWrapped = Some ('(', n + 1)
-                parts (soFar + "(") nextWrapped last next
+                parts (soFar + "(") nextWrapped last next soFarPlus
             | ')', Some ('(', 1) when last <> '\\' ->
-                sprintf "(%s)" soFar::parts "" None last next
+                parts "" None last next (fun next -> soFarPlus (sprintf "(%s)" soFar::next))
             | ')', Some ('(', n) when last <> '\\' -> // Bracket popping.
                 let nextWrapped = Some ('(', n - 1)
-                parts (soFar + ")") nextWrapped last next
+                parts (soFar + ")") nextWrapped last next soFarPlus
             | '\"', None when soFar = "" -> 
-                parts soFar (Some ('\"', 1)) last next // Quotes always have a 'stack' of 1, as they cant be pushed/popped like brackets.
+                parts soFar (Some ('\"', 1)) last next soFarPlus // Quotes always have a 'stack' of 1, as they cant be pushed/popped like brackets.
             | '\"', Some ('\"', 1) when last <> '\\' ->
-                sprintf "\"%s\"" soFar::parts "" None last next
+                parts "" None last next (fun next -> soFarPlus (sprintf "\"%s\"" soFar::next))
             | ' ', None when last <> '\\' ->
-                soFar::parts "" None last next
+                parts "" None last next (fun next -> soFarPlus (soFar::next))
             | _ -> 
-                parts (soFar + string c) wrapped c next
-    let raw = parts "" None ' ' s
+                parts (soFar + string c) wrapped c next soFarPlus
+    let raw = parts "" None ' ' s id
     if List.isEmpty raw then raw
     else joinBlanks raw // A final fold is used to combine whitespace blocks: e.g. "";"";"" becomes "   "
 
 /// Tokens takes a set of parts (returned by previous method - a string array) and converts it into `operational tokens`.
 /// E.g. echo hello world |> (fun (s:string) -> s.ToUpper()) >> out.txt would become a [Command; Pipe; Code; Out]
-let rec tokens partlist = 
-    match partlist with
-    | [] -> []
-    | head::remainder ->
-        match head with 
-        | "\r\n" -> 
-            Linebreak::tokens remainder
-        | s when String.IsNullOrWhiteSpace s ->
-            Whitespace s.Length::tokens remainder
-        | "|>" ->
-            Pipe::tokens remainder
-        | ">>" ->
-            match remainder with
-            | path::_ -> [Out path]
-            | _ -> [Out ""]
-        | s when s.[0] = '(' && (remainder = [] || s.[s.Length - 1] = ')') ->
-            Code s::tokens remainder
-        | command ->
-            let rec findArgs list =
-                match list with
-                | [] | "|>"::_ | ">>"::_ -> []
-                | ""::remainder ->
-                    " "::findArgs remainder
-                | head::remainder -> 
-                    head::findArgs remainder
-            let args = findArgs remainder
-            Command (command, args)::tokens remainder.[args.Length..]
+/// Note again the use of an inner function and the 'soFarPlus' accumulator, as above with parts
+let tokens partlist =
+    let rec tokens partlist soFarPlus = 
+        match partlist with
+        | [] -> soFarPlus []
+        | head::remainder ->
+            match head with 
+            | "\r\n" -> 
+                tokens remainder (fun next -> soFarPlus (Linebreak::next))
+            | s when String.IsNullOrWhiteSpace s ->
+                tokens remainder (fun next -> soFarPlus (Whitespace s.Length::next))
+            | "|>" ->
+                tokens remainder (fun next -> soFarPlus (Pipe::next))
+            | ">>" ->
+                match remainder with
+                | path::_ -> soFarPlus [Out path]
+                | _ -> soFarPlus [Out ""]
+            | s when s.[0] = '(' && (remainder = [] || s.[s.Length - 1] = ')') ->
+                tokens remainder (fun next -> soFarPlus (Code s::next))
+            | command ->
+                let rec findArgs list =
+                    match list with
+                    | [] | "|>"::_ | ">>"::_ -> []
+                    | ""::remainder ->
+                        " "::findArgs remainder
+                    | head::remainder -> 
+                        head::findArgs remainder
+                let args = findArgs remainder
+                tokens remainder.[args.Length..] (fun next -> soFarPlus (Command (command, args)::next))
+    tokens partlist id
 
 // Mutable version of the above. This was used first, during development, but the recursive version is arguably simpler.
 // The recursive version also has the advantage in that it doesn't require the incrementing of an index - something I consistently forgot

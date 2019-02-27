@@ -169,7 +169,7 @@ let private env args output =
         Environment.SetEnvironmentVariable (args.[0], args.[1])
 
 /// This list maps the text entered by the user to the implementation to be run, and the help text for the command.
-let private builtins = 
+let builtins = 
     [
         "clear", (clear, "clears the console")
         "echo", (echo, "prints out all text following the echo command to output")

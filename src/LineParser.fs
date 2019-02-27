@@ -30,6 +30,9 @@ let private joinBlanks (raw: string list) =
 let parts s =
     // The internal recursive function processes the input one char at a time via a list computation expression. 
     // This affords a good deal of control over the output, and is functional/immutable.
+    // The parameters are: results soFar, an option type determining whether the current character is in a 'wrapped' section (e.g. '"hello"' or '(world)'),
+    // what the last character was (used to check for escaping like '\"' or '\ '), whats left to process and an accumuluator function, that allows tail recursion 
+    // by shifting where the soFar and recursively parsed tail/remainder is pieced together.
     let rec parts soFar wrapped last remainder soFarPlus =
         if remainder = "" then
             match wrapped with
@@ -94,7 +97,7 @@ let tokens partlist =
                 tokens remainder.[args.Length..] (fun next -> soFarPlus (Command (command, args)::next))
     tokens partlist id
 
-// Mutable version of the above. This was used first, during development, but the recursive version is arguably simpler.
+// Mutable version of the above. This was used first during development, but the recursive version is arguably simpler.
 // The recursive version also has the advantage in that it doesn't require the incrementing of an index - something I consistently forgot
 // to do whenever I modified this, and therefore caused infinite loops :D
 (*

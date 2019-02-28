@@ -29,20 +29,23 @@ let private common startIndex (candidates : string list) =
 /// If multiple candidates are found, only the common content is returned.
 let private attemptTabCompletion soFar pos = 
     let last = parts soFar |> List.last
-    let asPath = Path.Combine(currentDir (), last)
-    let directory = Path.GetDirectoryName asPath
+    let last = if last.StartsWith "\"" then last.[1..] else last
 
-    let files = Directory.GetFiles directory |> Array.map Path.GetFileName |> Array.toList
-    let folders = Directory.GetDirectories directory |> Array.map Path.GetFileName |> Array.toList
+    let asPath = if Path.IsPathRooted last then last else Path.Combine(currentDir (), last)
+    let asDirectory = Path.GetDirectoryName asPath
+    let asFile = Path.GetFileName asPath
+
+    let files = Directory.GetFiles asDirectory |> Array.map Path.GetFileName |> Array.toList
+    let folders = Directory.GetDirectories asDirectory |> Array.map Path.GetFileName |> Array.toList
     let allOptions = files @ folders @ List.map fst builtins
 
-    let candidates = allOptions |> List.filter (fun n -> n.ToLower().StartsWith(last.ToLower()))
+    let candidates = allOptions |> List.filter (fun n -> n.ToLower().StartsWith(asFile.ToLower()))
 
     if candidates.Length = 0 then 
         soFar, pos // no change
     else
-        let matched = if candidates.Length = 1 then candidates.[0] else common last.Length candidates
-        let soFar = soFar.[0..pos-last.Length-1] + matched
+        let matched = if candidates.Length = 1 then candidates.[0] else common asFile.Length candidates
+        let soFar = soFar.[0..pos-last.Length-1] + Path.Combine(asDirectory, matched)
         soFar, soFar.Length
 
 /// Writes out a list of tokens to the output, coloured appropriately.

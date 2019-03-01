@@ -34,7 +34,7 @@ let main _ =
         read
    
     /// Attempts to run an executable (not a builtin like cd or dir) and to feed the result to the output.
-    let launchProcess fileName args (output: Output) =
+    let launchProcess fileName args writeOut writeError =
         let op = 
             new ProcessStartInfo(fileName, args |> String.concat " ",
                 CreateNoWindow = true,
@@ -44,8 +44,8 @@ let main _ =
                 UseShellExecute = false)
             |> fun i -> new Process (StartInfo = i)
 
-        op.OutputDataReceived.Add(fun e -> output.out.WriteLine e.Data |> ignore)
-        op.ErrorDataReceived.Add(fun e -> output.error.WriteLine e.Data |> ignore)
+        op.OutputDataReceived.Add(fun e -> writeOut e.Data |> ignore)
+        op.ErrorDataReceived.Add(fun e -> writeError e.Data |> ignore)
 
         try
             op.Start () |> ignore
@@ -55,29 +55,29 @@ let main _ =
             op.CancelOutputRead ()
         with
             | :? Win32Exception as ex -> // Even on linux/osx, this is the exception thrown.
-                output.error.WriteLine (sprintf "%s: %s" fileName ex.Message)
+                writeError (sprintf "%s: %s" fileName ex.Message)
     
     /// Attempts to run either help, a builtin, or an external process based on the given command and args
-    let runCommand command args (output: Output) =
+    let runCommand command args writeOut writeError =
         // Help (or ?) are special builtins, not part of the main builtin map (due to loading order).
         if command = "help" || command = "?" then
-            help args output
+            help args writeOut writeError
         else
             match Map.tryFind command builtinMap with
             | Some f -> 
-                f args output
+                f args writeOut writeError
             | None -> // If no builtin is found, try to run the users input as a execute process command.
-                launchProcess command args output
+                launchProcess command args writeOut writeError
 
     /// Attempts to run code as an expression or interaction. 
     /// If the last result is not empty, it is set as a value that is applied to the code as a function.
-    let runCode lastResult (code: string) output =
+    let runCode lastResult (code: string) writeOut writeError =
         let source = 
             if code.EndsWith ')' then code.[1..code.Length-2]
             else code.[1..]
 
         if lastResult = "" then 
-            fsi.EvalInteraction source output
+            fsi.EvalInteraction source writeOut writeError
         else
             // In the code below, the piped val is type annotated and piped into the expression
             // This reduces the need for command line code to have type annotations for string.
@@ -91,15 +91,15 @@ let main _ =
                 else 
                     sprintf "let (piped: string) = \"%s\" in piped |> (%s)" lastResult source
             // Without the type annotations above, you would need to write (fun (s:string) -> ...) rather than just (fun s -> ...)
-            fsi.EvalExpression toEval output
+            fsi.EvalExpression toEval writeOut writeError
             
     /// The implementation of the '>> filename' token. Takes the piped in content and saves it to a file.
-    let runOut content path output = 
+    let runOut content path _ writeError = 
         try
             File.WriteAllText (path, content)
         with
             | ex -> 
-                output.error.WriteLine (sprintf "Error writing to out %s: %s" path ex.Message)
+                writeError (sprintf "Error writing to out %s: %s" path ex.Message)
     
     /// Handles running a given token, e.g. a command, pipe, code or out.
     /// Output is printed into string builders if intermediate tokens, or to the console out if the last.
@@ -108,19 +108,30 @@ let main _ =
         match lastResult with
         | Error _ -> lastResult
         | Ok s ->
-            let output, out, error = if isLastToken then consoleOutput () else builderOutput ()
+            let output = new OutputWriter ()
+            let writeOut, writeError = 
+                if isLastToken then 
+                    (fun (s:string) ->
+                        apply Colours.goodOutput
+                        Console.WriteLine s),
+                    (fun (s:string) ->
+                        apply Colours.errorOutput
+                        Console.WriteLine s)
+                else
+                    output.writeOut, output.writeError
+
             match token with
             | Command (name, args) ->
                 let args = if s <> "" then args @ [s] else args
-                runCommand name args output
+                runCommand name args writeOut writeError
             | Code code ->
-                runCode s code output
+                runCode s code writeOut writeError
             | Pipe -> 
-                out.Append s |> ignore // last result takes the last val and sets it as the next val
+                writeOut s // last result takes the last val and sets it as the next val
             | Out path ->
-                runOut s path output            
+                runOut s path writeOut writeError            
             | _ -> () // The Token DU also includes presentation only tokens, like linebreaks and whitespace. These are ignored.
-            asResult out error
+            output.asResult ()
 
     /// Splits up what has been entered into a set of tokens, then runs each in turn feeding the result of the previous as the input to the next.
     /// The last token to be processed prints directly to the console out.

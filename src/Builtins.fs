@@ -8,26 +8,25 @@ module Builtins
 open System
 open System.IO
 open System.Collections
-open Model
 
 /// Returns the current process directory. By default this is where it was started, and can be changed with the cd builtin.
 let currentDir () = Directory.GetCurrentDirectory ()
 
 /// Clears the console window.
-let private clear _ _ = 
+let private clear _ _ _ = 
     Console.Clear ()
 
 /// Reads out the arguments passed into the output.
-let private echo args output = 
-    output.out.WriteLine (sprintf "%s" (String.concat " " args))
+let private echo args writeOut _ = 
+    writeOut (sprintf "%s" (String.concat " " args))
 
 /// Lists the contents of the current directory.
-let private dir args output = 
+let private dir args writeOut _ = 
     let searchPath = Path.Combine(currentDir (), if List.isEmpty args then "" else args.[0])
     let searchPattern = if List.length args < 2 then "*" else args.[1]
 
     if File.Exists searchPath then 
-        output.out.WriteLine (sprintf "%s" (Path.GetFileName searchPath))
+        writeOut (sprintf "%s" (Path.GetFileName searchPath))
     else
         let finalPath, finalPattern = 
             if Directory.Exists searchPath then searchPath, searchPattern
@@ -36,135 +35,135 @@ let private dir args output =
         
         Directory.GetDirectories (finalPath, finalPattern) 
         |> Seq.map (Path.GetFileName >> sprintf "%s/")
-        |> Seq.iter output.out.WriteLine
+        |> Seq.iter writeOut
         
         Directory.GetFiles (finalPath, finalPattern) 
         |> Seq.map (Path.GetFileName >> sprintf "%s")
-        |> Seq.iter output.out.WriteLine
+        |> Seq.iter writeOut
 
 /// Changes the curent process directory.
-let private cd args output =
-    if List.isEmpty args then output.error.WriteLine "no path specified"
+let private cd args _ writeError =
+    if List.isEmpty args then writeError "no path specified"
     else
         let newPath = Path.Combine (currentDir (), args.[0])
         let newPath = if newPath.EndsWith "/" then newPath else newPath + "/"
         if Directory.Exists newPath then 
             Directory.SetCurrentDirectory(newPath)
         else
-            output.error.WriteLine "directory not found"
+            writeError "directory not found"
   
 /// Creates a new empty directory.
-let private mkdir args output =
+let private mkdir args writeOut writeError =
     if List.isEmpty args then
-        output.error.WriteLine "no directory name speciifed"
+        writeError "no directory name speciifed"
     else
         let path = Path.Combine (currentDir(), args.[0])
         if Directory.Exists path then
-            output.error.WriteLine "directory already exists"
+            writeError "directory already exists"
         else
             Directory.CreateDirectory path |> ignore
-            output.out.WriteLine "directory created"
+            writeOut "directory created"
  
 /// Deletes a directory, if empty.
-let private rmdir args output =
+let private rmdir args writeOut writeError =
     if List.isEmpty args then
-        output.error.WriteLine "no directory name speciifed"
+        writeError "no directory name speciifed"
     else
         let path = Path.Combine (currentDir(), args.[0])
         if not (Directory.Exists path) then
-            output.error.WriteLine "directory does not exist"
+            writeError "directory does not exist"
         elif Directory.GetFiles (path, "*", SearchOption.AllDirectories) |> Array.isEmpty |> not then
-            output.error.WriteLine "directory was not empty"
+            writeError "directory was not empty"
         else
             Directory.Delete path |> ignore
-            output.out.WriteLine "directory deleted"
+            writeOut "directory deleted"
 
 /// Reads out the content of a file to the output.
-let private cat args output = 
+let private cat args writeOut writeError = 
     if List.isEmpty args then
-        output.error.WriteLine "no file specified"
+        writeError "no file specified"
     elif not (File.Exists args.[0]) then
-        output.error.WriteLine "file not found"
+        writeError "file not found"
     else
-        output.out.WriteLine (File.ReadAllText args.[0])
+        writeOut (File.ReadAllText args.[0])
 
 /// Copies a file into a new location.
-let private cp args output = 
+let private cp args writeOut writeError = 
     if List.length args <> 2 then
-        output.error.WriteLine "wrong number of arguments: please specify source and dest"
+        writeError "wrong number of arguments: please specify source and dest"
     else
         let source = Path.Combine(currentDir(), args.[0])
         if not (File.Exists source) then
-            output.error.WriteLine "source file path does not exist or is invalid"
+            writeError "source file path does not exist or is invalid"
         else
             let dest = Path.Combine(currentDir(), args.[1])
             let isDir = Directory.Exists dest
             let baseDir = Path.GetDirectoryName dest
             if not isDir && not (Directory.Exists baseDir) then
-                output.error.WriteLine "destination directory or file path does not exist or is invalid"
+                writeError "destination directory or file path does not exist or is invalid"
             elif File.Exists dest then
-                output.error.WriteLine "destination file already exists"
+                writeError "destination file already exists"
             elif not isDir then
                 File.Copy (source, dest)
-                output.out.WriteLine "file copied"
+                writeOut "file copied"
             else
                 let fileName = Path.GetFileName source
                 let dest = Path.Combine(dest, fileName)
                 File.Copy (source, dest)
-                output.out.WriteLine "file copied"
+                writeOut "file copied"
 
 /// Moves a file to a new location.
-let private mv args output = 
+let private mv args writeOut writeError = 
     if List.length args <> 2 then
-        output.error.WriteLine "wrong number of arguments: please specify source and dest"
+        writeError "wrong number of arguments: please specify source and dest"
     else
         let source = Path.Combine(currentDir(), args.[0])
         if not (File.Exists source) then
-            output.error.WriteLine "source file path does not exist or is invalid"
+            writeError "source file path does not exist or is invalid"
         else
             let dest = Path.Combine(currentDir(), args.[1])
             let isDir = Directory.Exists dest
             let baseDir = Path.GetDirectoryName dest
             if not isDir && not (Directory.Exists baseDir) then
-                output.error.WriteLine "destination directory or file path does not exist or is invalid"
+                writeError "destination directory or file path does not exist or is invalid"
             elif File.Exists dest then
-                output.error.WriteLine "destination file already exists"
+                writeError "destination file already exists"
             elif not isDir then
                 File.Move (source, dest)
-                output.out.WriteLine "file moved"
+                writeOut "file moved"
             else
                 let fileName = Path.GetFileName source
                 let dest = Path.Combine(dest, fileName)
                 File.Move (source, dest)
-                output.out.WriteLine "file moved"     
+                writeOut "file moved"     
 
 /// Removes a file or directory.             
-let private rm args output =
+let private rm args writeOut writeError =
     if List.isEmpty args then
-        output.error.WriteLine "no target specified"
+        writeError "no target specified"
     else
         let target = Path.Combine(currentDir(), args.[0])
         if File.Exists target then
             File.Delete target
-            output.error.WriteLine "file deleted"
+            writeError "file deleted"
         else if Directory.Exists target then
             if not (Array.isEmpty (Directory.GetFiles target)) then
-                output.error.WriteLine "directory is not empty"
+                writeError "directory is not empty"
             else
                 Directory.Delete target
-                output.out.WriteLine "directory deleted"
+                writeOut "directory deleted"
         else
-            output.error.WriteLine "file or directory does not exist"
+            writeError "file or directory does not exist"
 
 /// Enumerates all environment variables, or reads/sets a single value.
-let private env args output = 
+let private env args writeOut _ = 
     if List.isEmpty args then
         Environment.GetEnvironmentVariables ()
         |> Seq.cast<DictionaryEntry>
         |> Seq.map (fun d -> sprintf "%s=%s" (unbox<string> d.Key) (unbox<string> d.Value))
-        |> Seq.iter output.out.WriteLine
+        |> Seq.iter writeOut
     else if args.Length = 1 then
-        output.out.WriteLine (Environment.GetEnvironmentVariable args.[0])
+        writeOut (Environment.GetEnvironmentVariable args.[0])
     else
         Environment.SetEnvironmentVariable (args.[0], args.[1])
 
@@ -187,9 +186,9 @@ let builtins =
         // The following three special builtins are here so that help can access their content.
         // However they have no implementation, as they are invoked by the coreloop and processCommand methods 
         // in Program.fs rather than via the normal builtin execution process.
-        "?", ((fun _ _ -> ()), "same as help, prints the builtin list, or the help of specific commands")
-        "help", ((fun _ _ -> ()), "same as ?, prints the builtin list, or the help of specific commands")
-        "exit", ((fun _ _ -> ()), "exits FSH")
+        "?", ((fun _ _ _ -> ()), "same as help, prints the builtin list, or the help of specific commands")
+        "help", ((fun _ _ _ -> ()), "same as ?, prints the builtin list, or the help of specific commands")
+        "exit", ((fun _ _ _ -> ()), "exits FSH")
     ] 
 /// The map is specifically used to match entered text to implementation.
 let builtinMap = 
@@ -202,7 +201,7 @@ let builtinMap =
 
 /// Help provides helptext for a given builtin (including itself).
 /// It is defined after the builtin map, as it needs to read from the map to perform its function.
-let help args output = 
+let help args writeOut _ = 
     [
         if List.isEmpty args then
             yield sprintf "\nThe following builtin commands are supported by FSH:\n"
@@ -216,4 +215,4 @@ let help args output =
                     |> Option.bind (fun (_, (_, helpText)) -> Some (commandName, helpText)))
                 |> List.map (fun result -> 
                     result ||> sprintf "%s: %s")
-    ] |> Seq.iter output.out.WriteLine
+    ] |> Seq.iter writeOut

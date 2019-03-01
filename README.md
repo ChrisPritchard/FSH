@@ -69,6 +69,25 @@ Normally the piped value will be a string, as above. However if the prior result
 
 An expression can return either a value or a string array. If the latter, than it will be concatenated with line breaks for output printing. Otherwise it is converted to a string.
 
+### Loading or composing code
+
+There is a special code expression, `(*)`. When This token is parsed, it treats the *piped value as code*.
+
+For example, say you ran this line:
+
+	echo printfn "hello world from FSH!" >> greeter.fs
+
+You could then read and evaluate this file using:
+
+	cat greeter.fs |> (*)
+
+Resulting in the output "hello world from FSH!" being printed to the console.
+Likewise, you could compose without a file, like:
+
+	echo printfn "FSH says Hello World" |> (*)
+
+To get "FSH says Hello World!" printed to the console.
+
 ### Interactions and 'it'
 
 By default, FSI will evaluate an interaction and return `unit` if successful. 

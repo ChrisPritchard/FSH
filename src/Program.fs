@@ -82,7 +82,9 @@ let main _ =
             // In the code below, the piped val is type annotated and piped into the expression
             // This reduces the need for command line code to have type annotations for string.
             let toEval = 
-                if lastResult.Contains "\r\n" then
+                if code = "(*)" then // the (*) expression in special, as it treats the piped value as code to be evaluated
+                    lastResult
+                elif lastResult.Contains "\r\n" then
                     lastResult.Split ([|"\r\n"|], StringSplitOptions.RemoveEmptyEntries)
                     |> String.concat "\";\"" 
                     |> fun lastResult -> sprintf "let (piped: string[]) = [|\"%s\"|] in piped |> (%s)" lastResult source

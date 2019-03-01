@@ -103,7 +103,7 @@ This has been developed for the 2019 F# Applied Competition, as an educational p
 
 The idea came from PowerShell, which as a developer who works primarily on windows machines, is my default shell. However, PowerShell syntax is very verbose, especially when using .NET code in-line; a shell with a simpler, more bash- or cmd-like syntax combined with the light syntax and type inferrence of F# seemed like a good thing to make into a proof-of-concept.
 
-As it stands, FSH is not really intended to be used in anger: while it supports a host of builtins, and is quite extensible with its FSI integration, it is missing a lot of features like, for example, numerous flags on the default builtins (ls/dir just list the local directory, but don't for example, have any flags to provide more info or multi page support etc).
+As it stands, FSH is not really intended to be used in anger: while it supports a host of builtins, and is quite extensible with its FSI integration, it is missing a lot of features, for example numerous flags on the default builtins (ls/dir just list the local directory, but don't for example, have any flags to provide more info or multi page support etc).
 
 If someone wanted to take this, and extend it, they are free to do so: its under MIT. But primarily FSH serves as an educational example of:
 

@@ -35,18 +35,21 @@ let private attemptTabCompletion soFar pos =
     let asDirectory = Path.GetDirectoryName asPath
     let asFile = Path.GetFileName asPath
 
-    let files = Directory.GetFiles asDirectory |> Array.map Path.GetFileName |> Array.toList
-    let folders = Directory.GetDirectories asDirectory |> Array.map Path.GetFileName |> Array.toList
-    let allOptions = files @ folders @ List.map fst builtins
+    try
+        let files = Directory.GetFiles asDirectory |> Array.map Path.GetFileName |> Array.toList
+        let folders = Directory.GetDirectories asDirectory |> Array.map Path.GetFileName |> Array.toList
+        let allOptions = files @ folders @ List.map fst builtins
 
-    let candidates = allOptions |> List.filter (fun n -> n.ToLower().StartsWith(asFile.ToLower()))
+        let candidates = allOptions |> List.filter (fun n -> n.ToLower().StartsWith(asFile.ToLower()))
 
-    if candidates.Length = 0 then 
-        soFar, pos // no change
-    else
-        let matched = if candidates.Length = 1 then candidates.[0] else common asFile.Length candidates
-        let soFar = soFar.[0..pos-last.Length-1] + Path.Combine(asDirectory, matched)
-        soFar, soFar.Length
+        if candidates.Length = 0 then 
+            soFar, pos // no change
+        else
+            let matched = if candidates.Length = 1 then candidates.[0] else common asFile.Length candidates
+            let soFar = soFar.[0..pos-last.Length-1] + Path.Combine(asDirectory, matched)
+            soFar, soFar.Length
+    with
+        | :? IOException -> soFar, pos // Invalid path or file access, so treat as not completable. 
 
 /// Writes out a list of tokens to the output, coloured appropriately.
 /// This also ensures the print out is aligned with the prompt

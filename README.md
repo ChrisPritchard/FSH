@@ -25,6 +25,22 @@ Then use this like:
 
 This will list all dll files in the current directory, one per line.
 
+This can be used with any token, not just 'built-ins' like `echo` and `ls`. For example, if you wanted to get the list of templates in the dotnet CLI that support F#:
+
+	dotnet new |> (fun sa -> sa |> Seq.filter (fun s -> s.Contains "F#"))
+
+On my machine, this will print:
+
+	Console Application                               console            [C#], F#, VB      Common/Console                   
+	Class library                                     classlib           [C#], F#, VB      Common/Library                   
+	Unit Test Project                                 mstest             [C#], F#, VB      Test/MSTest                      
+	NUnit 3 Test Project                              nunit              [C#], F#, VB      Test/NUnit                       
+	NUnit 3 Test Item                                 nunit-test         [C#], F#, VB      Test/NUnit                       
+	xUnit Test Project                                xunit              [C#], F#, VB      Test/xUnit                       
+	ASP.NET Core Empty                                web                [C#], F#          Web/Empty                        
+	ASP.NET Core Web App (Model-View-Controller)      mvc                [C#], F#          Web/MVC                          
+	ASP.NET Core Web API                              webapi             [C#], F#          Web/WebAPI    
+
 ## Installing and Running
 
 FSH has been built using **.NET Core 2.2**. To build, you will need to install this SDK from [here](https://dotnet.microsoft.com/download/dotnet-core/2.2).

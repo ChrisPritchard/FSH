@@ -143,7 +143,7 @@ let readLine (prior: string list) =
             reader priorIndex nextSoFar nextPos
         | ConsoleKey.Delete ->
             let relPos = lastLineStart soFar + pos
-            let nextSoFar = if soFar = "" then soFar else soFar.[0..relPos-1] + soFar.[relPos+1..]
+            let nextSoFar = if soFar = "" || relPos = soFar.Length then soFar else soFar.[0..relPos-1] + soFar.[relPos+1..]
             reader priorIndex nextSoFar pos
         // Left and Right change the position on the current line, allowing users to insert characters.
         | ConsoleKey.LeftArrow ->

@@ -30,13 +30,13 @@ let main _ =
    
     /// Attempts to run an executable (not a builtin like cd or dir) and to feed the result to the output.
     let launchProcess fileName args writeOut writeError =
-        use op = 
+        use op = // As Process is IDisposable, 'use' here ensures it is cleaned up.
             ProcessStartInfo(fileName, args |> String.concat " ",
                 UseShellExecute = false,
                 RedirectStandardOutput = true, // Output is redirected so it can be captured by the events below.
                 RedirectStandardError = true, // Error is also redirected for capture.
                 RedirectStandardInput = false) // Note we don't redirect input, so that regular console input can be sent to the process.
-            |> fun i -> new Process (StartInfo = i)
+            |> fun i -> new Process (StartInfo = i) // Because Process is IDisposable, we use the recommended 'new' syntax.
 
         op.OutputDataReceived.Add(fun e -> writeOut e.Data |> ignore) // These events capture output and error, and feed them into the writeMethods.
         op.ErrorDataReceived.Add(fun e -> writeError e.Data |> ignore)
@@ -85,6 +85,7 @@ let main _ =
                     lastResult
                 elif lastResult.Contains "\r\n" then
                     lastResult.Split ([|"\r\n"|], StringSplitOptions.RemoveEmptyEntries) // Treat a multiline last result as a string array.
+                    |> Array.map (fun s -> s.Replace("\"", "\\\""))
                     |> String.concat "\";\"" 
                     |> fun lastResult -> sprintf "let (piped: string[]) = [|\"%s\"|] in piped |> (%s)" lastResult source
                 else // If no line breaks, the last result is piped in as a string.

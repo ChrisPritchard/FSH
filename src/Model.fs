@@ -2,10 +2,7 @@
 /// However, where custom types are needed they are defined here, along with closely related methods.
 module Model
 
-open System
-open System.IO
 open System.Text
-open Constants
 
 /// Token is a DU used to tag parts of a read input.
 /// It is used for piping content, and cosmetically for colouring user input.

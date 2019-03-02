@@ -101,6 +101,23 @@ let main _ =
             | ex -> 
                 writeError (sprintf "Error writing to out %s: %s" path ex.Message)
     
+    /// Write methods provides the outputwriter object and write out, write error methods to be passed to a token evaluator.
+    /// If this is the last token, these will print to Console out. 
+    /// Otherwise the outputWriter will fill with written content, to be piped to the next token.
+    let writeMethods isLastToken =
+        let output = new OutputWriter ()
+        let writeOut, writeError =
+            if isLastToken then 
+                (fun (s:string) ->
+                    apply Colours.goodOutput
+                    Console.WriteLine s),
+                (fun (s:string) ->
+                    apply Colours.errorOutput
+                    Console.WriteLine s)
+            else
+                output.writeOut, output.writeError
+        output, writeOut, writeError
+
     /// Handles running a given token, e.g. a command, pipe, code or out.
     /// Output is printed into string builders if intermediate tokens, or to the console out if the last.
     /// In this way, the last token can print in real time.
@@ -108,18 +125,7 @@ let main _ =
         match lastResult with
         | Error _ -> lastResult
         | Ok s ->
-            let output = new OutputWriter ()
-            let writeOut, writeError = 
-                if isLastToken then 
-                    (fun (s:string) ->
-                        apply Colours.goodOutput
-                        Console.WriteLine s),
-                    (fun (s:string) ->
-                        apply Colours.errorOutput
-                        Console.WriteLine s)
-                else
-                    output.writeOut, output.writeError
-
+            let output, writeOut, writeError = writeMethods isLastToken
             match token with
             | Command (name, args) ->
                 let args = if s <> "" then args @ [s] else args
@@ -127,9 +133,9 @@ let main _ =
             | Code code ->
                 runCode s code writeOut writeError
             | Pipe -> 
-                writeOut s // last result takes the last val and sets it as the next val
+                writeOut s // Pipe uses the writeOut function to set the next content to be the pipedin last result
             | Out path ->
-                runOut s path writeOut writeError            
+                runOut s path writeOut writeError
             | _ -> () // The Token DU also includes presentation only tokens, like linebreaks and whitespace. These are ignored.
             output.asResult ()
 

@@ -37,25 +37,30 @@ let main _ =
     let launchProcess fileName args writeOut writeError =
         let op = 
             new ProcessStartInfo(fileName, args |> String.concat " ",
-                CreateNoWindow = true,
+                UseShellExecute = false,
                 RedirectStandardOutput = true,
-                RedirectStandardInput = true,
                 RedirectStandardError = true,
-                UseShellExecute = false)
+                RedirectStandardInput = false)
             |> fun i -> new Process (StartInfo = i)
 
         op.OutputDataReceived.Add(fun e -> writeOut e.Data |> ignore)
         op.ErrorDataReceived.Add(fun e -> writeError e.Data |> ignore)
+        Console.CursorVisible <- true // so when receiving input from the child process, it has a cursor
 
         try
             op.Start () |> ignore
 
             op.BeginOutputReadLine ()
+
             op.WaitForExit ()
             op.CancelOutputRead ()
         with
             | :? Win32Exception as ex -> // Even on linux/osx, this is the exception thrown.
+                // Will USUALLY occur when trying to run a process that doesn't exist.
+                // But running something you don't have rights too will also throw this.
                 writeError (sprintf "%s: %s" fileName ex.Message)
+        // Hide the cursor.
+        Console.CursorVisible <- false
     
     /// Attempts to run either help, a builtin, or an external process based on the given command and args
     let runCommand command args writeOut writeError =

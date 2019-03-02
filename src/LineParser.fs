@@ -7,7 +7,9 @@ open Model
 /// Folds the given string list, joing ""'s into whitespace: "";"" becomes "  "
 let private joinBlanks (raw: string list) =
     let parsed, final = 
-        (([], raw.[0]), raw.[1..]) 
+        // The fold state is the set of results so far, plus the last string (the first string, initially). 
+        // The fold operates over all chars but the first.
+        (([], raw.[0]), raw.[1..])
         ||> List.fold (fun (results, last) next ->
             if next = "" && last = "" then 
                 results, "  "
@@ -60,7 +62,7 @@ let parts s =
                 parts "" None last next (fun next -> acc (soFar::next))
             | _ -> 
                 parts (soFar + string c) wrapped c next acc
-    let raw = parts "" None ' ' s id
+    let raw = parts "" None ' ' s id // The blank space here, ' ', is just a dummy initial state that ensures the first char will be treated as a new token.
     if List.isEmpty raw then raw
     else joinBlanks raw // A final fold is used to combine whitespace blocks: e.g. "";"";"" becomes "   "
 

@@ -16,31 +16,22 @@ open Interactive
 [<EntryPoint>]
 let main _ =
 
-    // Generally, the cursor is hidden when writing text that isn't from the user. This is to prevent an ugly 'flicker'.
-    Console.CursorVisible <- false
+    // Below is the opening intro and help info lines of FSH. 
+    // They are invoked here so fsi can be instantiated, putting it in scope of code operations below.
 
+    Console.CursorVisible <- false  // Generally, the cursor is hidden when writing text that isn't from the user. This is to prevent an ugly 'flicker'.
     apply Colours.title
     printfn " -- FSH: FSharp Shell -- "
-
     apply Colours.neutral
-    printf "starting FSI..." // booting FSI takes a short but noticeable amount of time
-    let fsi = new Fsi ()
+    printf "starting FSI..." // Booting FSI takes a short but noticeable amount of time.
+    let fsi = Fsi ()
     printfn "done"
-
     printfn "For a list of commands type '?' or 'help'"
-
-    /// Prints the prompt ('FSH' plus the working dir) and waits for then accepts input from the user.
-    let prompt prior = 
-        apply Colours.prompt
-        printf "%s %s> " promptName (currentDir ())
-        // Here is called a special function from LineReader.fs that accepts tabs and the like.
-        let read = readLine prior
-        read
    
     /// Attempts to run an executable (not a builtin like cd or dir) and to feed the result to the output.
     let launchProcess fileName args writeOut writeError =
-        let op = 
-            new ProcessStartInfo(fileName, args |> String.concat " ",
+        use op = 
+            ProcessStartInfo(fileName, args |> String.concat " ",
                 UseShellExecute = false,
                 RedirectStandardOutput = true, // Output is redirected so it can be captured by the events below.
                 RedirectStandardError = true, // Error is also redirected for capture.
@@ -78,7 +69,7 @@ let main _ =
                 launchProcess command args writeOut writeError
 
     /// Attempts to run code as an expression or interaction. 
-    /// If the last result is not empty, it is set as a value that is applied to the code as a function.
+    /// If the last result is not empty, it is set as a value that is applied to the code as a function parameter.
     let runCode lastResult (code: string) writeOut writeError =
         let source = 
             if code.EndsWith ')' then code.[1..code.Length-2]
@@ -93,12 +84,12 @@ let main _ =
                 if code = "(*)" then // the (*) expression in special, as it treats the piped value as code to be evaluated
                     lastResult
                 elif lastResult.Contains "\r\n" then
-                    lastResult.Split ([|"\r\n"|], StringSplitOptions.RemoveEmptyEntries)
+                    lastResult.Split ([|"\r\n"|], StringSplitOptions.RemoveEmptyEntries) // Treat a multiline last result as a string array.
                     |> String.concat "\";\"" 
                     |> fun lastResult -> sprintf "let (piped: string[]) = [|\"%s\"|] in piped |> (%s)" lastResult source
-                else 
+                else // If no line breaks, the last result is piped in as a string.
                     sprintf "let (piped: string) = \"%s\" in piped |> (%s)" lastResult source
-            // Without the type annotations above, you would need to write (fun (s:string) -> ...) rather than just (fun s -> ...)
+                // Without the type annotations above, you would need to write (fun (s:string) -> ...) rather than just (fun s -> ...)
             fsi.EvalExpression toEval writeOut writeError
             
     /// The implementation of the '>> filename' token. Takes the piped in content and saves it to a file.
@@ -156,22 +147,25 @@ let main _ =
             let tokens = tokens parts
             let lastToken = List.last tokens
 
-            // The last token prints directly to the console out, and therefore the final result is ignored.
-            (Ok "", tokens) 
+            (Ok "", tokens) // The fold starts with an empty string as the first 'piped' value
             ||> List.fold (fun lastResult token -> 
                 processToken (token = lastToken) lastResult token)
-            |> ignore
+            |> ignore // The last token prints directly to the console out, and therefore the final result is ignored.
 
     /// The coreloop waits for input, runs that input, and repeats. 
     /// It also handles the special exit command, quiting the loop and thus the process.
+    /// This function is tail call optimised, so can loop forever until 'exit' is entered.
     let rec coreLoop prior =
-        let entered = prompt prior
+        apply Colours.prompt
+        printf "%s %s> " promptName (currentDir ())
+        // Here is called a special function from LineReader.fs that accepts tabs and the like.
+        let entered = readLine prior
         if entered.Trim() = "exit" then ()
         else
             processEntered entered
             coreLoop (entered::prior)
 
-    // Entry invocation of FSH!
+    // Start the core loop with no prior command history. FSH begins!
     coreLoop []
 
     0

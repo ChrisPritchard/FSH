@@ -33,33 +33,33 @@ let parts s =
     // The parameters are: results soFar, an option type determining whether the current character is in a 'wrapped' section (e.g. '"hello"' or '(world)'),
     // what the last character was (used to check for escaping like '\"' or '\ '), whats left to process and an accumuluator function, that allows tail recursion 
     // by shifting where the soFar and recursively parsed tail/remainder is pieced together.
-    let rec parts soFar wrapped last remainder soFarPlus =
+    let rec parts soFar wrapped last remainder acc =
         if remainder = "" then
             match wrapped with
-            | Some (c, _) -> soFarPlus [(string c + soFar)] // If a wrapping op was in progress, add the start token to be faithful to user input.
-            | None -> soFarPlus (if soFar <> "" then [soFar] else [])
+            | Some (c, _) -> acc [(string c + soFar)] // If a wrapping op was in progress, add the start token to be faithful to user input.
+            | None -> acc (if soFar <> "" then [soFar] else [])
         else
             let c, next = remainder.[0], remainder.[1..]
             match c, wrapped with
             | '(', None when soFar = "" ->
                 let nextWrapped = Some ('(', 1)
-                parts soFar nextWrapped last next soFarPlus
+                parts soFar nextWrapped last next acc
             | '(', Some ('(', n) -> // Bracket pushing.
                 let nextWrapped = Some ('(', n + 1)
-                parts (soFar + "(") nextWrapped last next soFarPlus
+                parts (soFar + "(") nextWrapped last next acc
             | ')', Some ('(', 1) when last <> '\\' ->
-                parts "" None last next (fun next -> soFarPlus (sprintf "(%s)" soFar::next))
+                parts "" None last next (fun next -> acc (sprintf "(%s)" soFar::next))
             | ')', Some ('(', n) when last <> '\\' -> // Bracket popping.
                 let nextWrapped = Some ('(', n - 1)
-                parts (soFar + ")") nextWrapped last next soFarPlus
+                parts (soFar + ")") nextWrapped last next acc
             | '\"', None when soFar = "" -> 
-                parts soFar (Some ('\"', 1)) last next soFarPlus // Quotes always have a 'stack' of 1, as they cant be pushed/popped like brackets.
+                parts soFar (Some ('\"', 1)) last next acc // Quotes always have a 'stack' of 1, as they cant be pushed/popped like brackets.
             | '\"', Some ('\"', 1) when last <> '\\' ->
-                parts "" None last next (fun next -> soFarPlus (sprintf "\"%s\"" soFar::next))
+                parts "" None last next (fun next -> acc (sprintf "\"%s\"" soFar::next))
             | ' ', None when last <> '\\' ->
-                parts "" None last next (fun next -> soFarPlus (soFar::next))
+                parts "" None last next (fun next -> acc (soFar::next))
             | _ -> 
-                parts (soFar + string c) wrapped c next soFarPlus
+                parts (soFar + string c) wrapped c next acc
     let raw = parts "" None ' ' s id
     if List.isEmpty raw then raw
     else joinBlanks raw // A final fold is used to combine whitespace blocks: e.g. "";"";"" becomes "   "
@@ -68,23 +68,23 @@ let parts s =
 /// E.g. echo hello world |> (fun (s:string) -> s.ToUpper()) >> out.txt would become a [Command; Pipe; Code; Out]
 /// Note again the use of an inner function and the 'soFarPlus' accumulator, as above with parts
 let tokens partlist =
-    let rec tokens partlist soFarPlus = 
+    let rec tokens partlist acc = 
         match partlist with
-        | [] -> soFarPlus []
+        | [] -> acc []
         | head::remainder ->
             match head with 
             | "\r\n" -> 
-                tokens remainder (fun next -> soFarPlus (Linebreak::next))
+                tokens remainder (fun next -> acc (Linebreak::next))
             | s when String.IsNullOrWhiteSpace s ->
-                tokens remainder (fun next -> soFarPlus (Whitespace s.Length::next))
+                tokens remainder (fun next -> acc (Whitespace s.Length::next))
             | "|>" ->
-                tokens remainder (fun next -> soFarPlus (Pipe::next))
+                tokens remainder (fun next -> acc (Pipe::next))
             | ">>" ->
                 match remainder with
-                | path::_ -> soFarPlus [Out path]
-                | _ -> soFarPlus [Out ""]
+                | path::_ -> acc [Out path]
+                | _ -> acc [Out ""]
             | s when s.[0] = '(' && (remainder = [] || s.[s.Length - 1] = ')') ->
-                tokens remainder (fun next -> soFarPlus (Code s::next))
+                tokens remainder (fun next -> acc (Code s::next))
             | command ->
                 let rec findArgs list =
                     match list with
@@ -94,7 +94,7 @@ let tokens partlist =
                     | head::remainder -> 
                         head::findArgs remainder
                 let args = findArgs remainder
-                tokens remainder.[args.Length..] (fun next -> soFarPlus (Command (command, args)::next))
+                tokens remainder.[args.Length..] (fun next -> acc (Command (command, args)::next))
     tokens partlist id
 
 // Mutable version of the above. This was used first during development, but the recursive version is arguably simpler.

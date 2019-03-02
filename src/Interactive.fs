@@ -1,9 +1,10 @@
-﻿module Interactive
+﻿/// Wrappers for F# Interactive, making it a little easier/consistent to use from the rest of FSH.
+/// Contains one primary class, Fsi.
+module Interactive
 
 open Microsoft.FSharp.Compiler.Interactive.Shell
 open System.IO
 
-/// Wrapper for F# Interactive.
 /// This class instantiates the FSI instance, along with hidden reader/writer streams for FSI input/output/error.
 /// It provides several methods to interact with FSI or its streams in a simple fashion from outside the class.
 type Fsi () =

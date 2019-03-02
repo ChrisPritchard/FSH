@@ -1,4 +1,6 @@
-﻿/// Methods for parsing a line of input into its constituent tokens and parts
+﻿/// Methods for parsing a line of input into its constituent tokens and parts.
+/// Parts operates on a raw string, breaking it into logical chunks.
+/// Tokens takes these chunks, and groups them into process-able tokens.
 module LineParser
 
 open System

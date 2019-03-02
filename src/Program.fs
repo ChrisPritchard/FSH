@@ -16,13 +16,17 @@ open Interactive
 [<EntryPoint>]
 let main _ =
 
+    // Generally, the cursor is hidden when writing text that isn't from the user. This is to prevent an ugly 'flicker'.
     Console.CursorVisible <- false
+
     apply Colours.title
     printfn " -- FSH: FSharp Shell -- "
+
     apply Colours.neutral
     printf "starting FSI..." // booting FSI takes a short but noticeable amount of time
     let fsi = new Fsi ()
     printfn "done"
+
     printfn "For a list of commands type '?' or 'help'"
 
     /// Prints the prompt ('FSH' plus the working dir) and waits for then accepts input from the user.
@@ -38,20 +42,19 @@ let main _ =
         let op = 
             new ProcessStartInfo(fileName, args |> String.concat " ",
                 UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                RedirectStandardInput = false)
+                RedirectStandardOutput = true, // Output is redirected so it can be captured by the events below.
+                RedirectStandardError = true, // Error is also redirected for capture.
+                RedirectStandardInput = false) // Note we don't redirect input, so that regular console input can be sent to the process.
             |> fun i -> new Process (StartInfo = i)
 
-        op.OutputDataReceived.Add(fun e -> writeOut e.Data |> ignore)
+        op.OutputDataReceived.Add(fun e -> writeOut e.Data |> ignore) // These events capture output and error, and feed them into the writeMethods.
         op.ErrorDataReceived.Add(fun e -> writeError e.Data |> ignore)
         Console.CursorVisible <- true // so when receiving input from the child process, it has a cursor
 
         try
             op.Start () |> ignore
 
-            op.BeginOutputReadLine ()
-
+            op.BeginOutputReadLine () // Necessary so that the events above will fire: the process is asynchronously listened to.
             op.WaitForExit ()
             op.CancelOutputRead ()
         with

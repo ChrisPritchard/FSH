@@ -17,7 +17,7 @@ For something more advanced, you could implement a simple 'grep' command (grep i
 	(let grep (s:string) arr = 
 		arr |> Array.filter (fun line -> line.Contains(s)))
 
-(**Note** that shift+enter will go to a new line, useful for code. Tabbing (four spaces) has to be entered manually. Also, by piping arr on the second line, the line parameter does not need a type annotation.)
+(**Note** that shift+enter will go to a new line, useful for code. Tabbing (four spaces) works as well, shunting the current line forward. Also, by piping arr on the second line, the line parameter does not need a type annotation.)
 
 Then use this like:
 
@@ -34,12 +34,7 @@ On my machine, this will print:
 	Console Application                               console            [C#], F#, VB      Common/Console                   
 	Class library                                     classlib           [C#], F#, VB      Common/Library                   
 	Unit Test Project                                 mstest             [C#], F#, VB      Test/MSTest                      
-	NUnit 3 Test Project                              nunit              [C#], F#, VB      Test/NUnit                       
-	NUnit 3 Test Item                                 nunit-test         [C#], F#, VB      Test/NUnit                       
-	xUnit Test Project                                xunit              [C#], F#, VB      Test/xUnit                       
-	ASP.NET Core Empty                                web                [C#], F#          Web/Empty                        
-	ASP.NET Core Web App (Model-View-Controller)      mvc                [C#], F#          Web/MVC                          
-	ASP.NET Core Web API                              webapi             [C#], F#          Web/WebAPI    
+	... and so on
 
 ## Installing and Running
 

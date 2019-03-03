@@ -22,3 +22,6 @@ module Colours =
 /// Sets the console foreground to the specified colour. 
 /// Intended to be used with the colours module, e.g. apply Colours.prompt.
 let apply colour = Console.ForegroundColor <- colour
+
+/// When tabbing inside a code expressiom, this controls how many spaces are added.
+let codeSpaces = 4

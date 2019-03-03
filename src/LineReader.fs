@@ -55,7 +55,7 @@ let private attemptTabCompletion soFar pos =
 /// This also ensures the print out is aligned with the prompt
 let private writeTokens promptPos tokens = 
     let align () = if Console.CursorLeft < promptPos then Console.CursorLeft <- promptPos
-    let clearLine () = printf "%s" (new String(' ', Console.WindowWidth - Console.CursorLeft - 1))
+    let clearLine () = printf "%s" (String (' ', Console.WindowWidth - Console.CursorLeft - 1))
     let printAligned (s: string) = 
         let lines = s.Split "\r\n"
         lines |> Array.iteri (fun i line -> 
@@ -84,7 +84,7 @@ let private writeTokens promptPos tokens =
             apply Colours.argument
             printAligned s
         | Whitespace n ->
-            printAligned (new String(' ', n))
+            printAligned (String (' ', n))
         | Linebreak ->
             clearLine ()
             printfn "")
@@ -102,6 +102,8 @@ let readLine (prior: string list) =
         let parts = parts soFar // From Terminal.fs, breaks the input into its parts
         let tokens = tokens parts // Also from Terminal.fs, groups and tags the parts by type (e.g. Code)
         writeTokens startPos tokens // Writes the types out, coloured.
+        // finally, return the last non-whitespace token
+        tokens |> List.filter (function | Whitespace _ | Linebreak -> false | _ -> true) |> List.tryLast
     
     /// For operations that alter the current string at pos (e.g. delete) 
     /// the last line position in the total string needs to be determined.
@@ -118,7 +120,9 @@ let readLine (prior: string list) =
         Console.CursorVisible <- false
         Console.CursorLeft <- startPos
         Console.CursorTop <- startLine
-        printFormatted soFar
+        // The printformatted function converts to token types for colouring. As part of this, the last token type can be retrieved which 
+        // alters how some of the keys below work (specifically tabbing, which does tab completion for commands but tab spaces for code).
+        let lastTokenType = printFormatted soFar
         Console.CursorLeft <- startPos + pos
         Console.CursorVisible <- true
         
@@ -169,14 +173,23 @@ let readLine (prior: string list) =
         | ConsoleKey.End ->
             let nextPos = (soFar.Length - lastLineStart soFar)
             reader priorIndex soFar nextPos
-        // Tab is complex, in that it attempts to finish a path or command given the last token in soFar.
-        // Nothing is done however if the tab completion would exceed the maximum line length.
+        // Tab is complex, in that if in code it adds spaces to the line, and if not in code it attempts to finish a path 
+        // or command given the last token in soFar. Nothing is done if the tab completion would exceed the maximum line length.
         | ConsoleKey.Tab when soFar <> "" ->
-            let (newSoFar, newPos) = attemptTabCompletion soFar pos
-            if pos + startPos <= Console.WindowWidth - 2 then
-                reader priorIndex newSoFar newPos
-            else
+            if pos + startPos > Console.WindowWidth - 2 then
                 reader priorIndex soFar pos
+            else
+                let newSoFar, newPos =
+                    match lastTokenType with
+                    | Some (Code code) -> 
+                        if not (code.Contains "\r\n") then soFar, pos
+                        else 
+                            let lineStart = lastLineStart soFar
+                            let newSoFar = soFar.[..lineStart-1] + String (' ', codeSpaces) + soFar.[lineStart..]
+                            newSoFar, pos + codeSpaces
+                    | _ ->
+                        attemptTabCompletion soFar pos
+                reader priorIndex newSoFar newPos                
         // Finally, if none of the above and the key pressed is not a control char (e.g. Alt, Esc), it is appended.
         // Unless the line is already at max length, in which case nothing is done.
         | _ ->

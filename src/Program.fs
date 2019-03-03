@@ -52,7 +52,7 @@ let main _ =
         with
             | :? Win32Exception as ex -> // Even on linux/osx, this is the exception thrown.
                 // If on windows and the error the file isn't an executable, try piping through explorer.
-                // This will cause explorer to query the registry for the default handler problem.
+                // This will cause explorer to query the registry for the default handler program.
                 if ex.Message = notExecutableError && RuntimeInformation.IsOSPlatform OSPlatform.Windows then
                     launchProcess "explorer" (fileName::args) writeOut writeError
                 else

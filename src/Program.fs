@@ -12,6 +12,7 @@ open Builtins
 open LineParser
 open LineReader
 open Interactive
+open System.Runtime.InteropServices
 
 [<EntryPoint>]
 let main _ =
@@ -29,7 +30,7 @@ let main _ =
     printfn "For a list of commands type '?' or 'help'"
    
     /// Attempts to run an executable (not a builtin like cd or dir) and to feed the result to the output.
-    let launchProcess fileName args writeOut writeError =
+    let rec launchProcess fileName args writeOut writeError =
         use op = // As Process is IDisposable, 'use' here ensures it is cleaned up.
             ProcessStartInfo(fileName, args |> String.concat " ",
                 UseShellExecute = false,
@@ -50,9 +51,14 @@ let main _ =
             op.CancelOutputRead ()
         with
             | :? Win32Exception as ex -> // Even on linux/osx, this is the exception thrown.
-                // Will USUALLY occur when trying to run a process that doesn't exist.
-                // But running something you don't have rights too will also throw this.
-                writeError (sprintf "%s: %s" fileName ex.Message)
+                // If on windows and the error the file isn't an executable, try piping through explorer.
+                // This will cause explorer to query the registry for the default handler problem.
+                if ex.Message = notExecutableError && RuntimeInformation.IsOSPlatform OSPlatform.Windows then
+                    launchProcess "explorer" (fileName::args) writeOut writeError
+                else
+                    // Will USUALLY occur when trying to run a process that doesn't exist.
+                    // But running something you don't have rights too will also throw this.
+                    writeError (sprintf "%s: %s" fileName ex.Message)
         // Hide the cursor.
         Console.CursorVisible <- false
     

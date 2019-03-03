@@ -25,3 +25,7 @@ let apply colour = Console.ForegroundColor <- colour
 
 /// When tabbing inside a code expressiom, this controls how many spaces are added.
 let codeSpaces = 4
+
+/// Thrown when launching a process that isn't an executable, e.g. a txt file.
+/// Defined so that the code can check for this, then try using explorer on windows.
+let notExecutableError = "The specified executable is not a valid application for this OS platform."

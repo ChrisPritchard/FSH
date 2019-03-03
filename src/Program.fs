@@ -105,7 +105,7 @@ let main _ =
     /// If this is the last token, these will print to Console out. 
     /// Otherwise the outputWriter will fill with written content, to be piped to the next token.
     let writeMethods isLastToken =
-        let output = new OutputWriter ()
+        let output = OutputWriter ()
         let writeOut, writeError =
             if isLastToken then 
                 (fun (s:string) ->

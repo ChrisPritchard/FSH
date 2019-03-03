@@ -23,8 +23,8 @@ type Token =
 /// OutputWriter is a log out container used to capture the output of everything except for the last token in a command chain.
 /// It captures log lines using mutable internal string builders, which are then returned for the next token in the chain using the asResult member function.
 type OutputWriter () =
-    let out = new StringBuilder ()
-    let error = new StringBuilder ()
+    let out = StringBuilder ()
+    let error = StringBuilder ()
     /// Non-error output content. Will be piped to the next token or console out.
     member __.writeOut s =
         out.AppendLine s |> ignore

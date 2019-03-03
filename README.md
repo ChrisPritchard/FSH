@@ -8,9 +8,15 @@ In addition to normal shell features (folder navigation, creation, deletion, ech
 
 To demonstrate what this means, using FSH, you could type a line like:
 
-	echo "hello world" |> (fun s -> s.ToUpper()) >> result.txt
+	echo hello world |> (fun s -> s.ToUpper()) >> result.txt
 
 Which would create a text file in the current directory called result.txt, containing the text `HELLO WORLD`
+
+You can see in the above sample that to pipe between processable 'tokens' (like a command or code) you use `|>` just like in F#. And to run F# code, you wrap it with `(` and `)`. In the sample the built-in command `echo` with the arguments `hello world` is piped to the code expression `fun s -> s.ToUpper()`, then piped again to the result.txt file (`>>` is a special pipe that sends to a file rather than console out).
+
+As you type the above, the text is coloured automatically by the type of expression you are typing.
+
+## Further Examples
 
 For something more advanced, you could implement a simple 'grep' command (grep is not built in to FSH by default):
 

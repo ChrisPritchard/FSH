@@ -138,11 +138,12 @@ let main _ =
                 runCommand name args writeOut writeError
             | Code code ->
                 runCode s code writeOut writeError
-            | Pipe -> 
-                writeOut s // Pipe uses the writeOut function to set the next content to be the pipedin last result
             | Out path ->
                 runOut s path writeOut writeError
-            | _ -> () // The Token DU also includes presentation only tokens, like linebreaks and whitespace. These are ignored.
+            | Pipe | Whitespace _ | Linebreak -> 
+                // Pipe uses the writeOut function to set the next content to be the pipedin last result 
+                // The Token DU also includes presentation only tokens, like linebreaks and whitespace. These do nothing and so act like pipes.
+                writeOut s 
             output.asResult ()
 
     /// Splits up what has been entered into a set of tokens, then runs each in turn feeding the result of the previous as the input to the next.

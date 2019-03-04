@@ -14,6 +14,7 @@
     <Compile Include="Model.fs" />
     <Compile Include="Builtins.fs" />
     <Compile Include="LineParser.fs" />
+    <Compile Include="LineWriter.fs" />
     <Compile Include="LineReader.fs" />
     <Compile Include="Interactive.fs" />
     <Compile Include="Program.fs" />

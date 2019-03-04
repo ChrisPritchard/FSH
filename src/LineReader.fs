@@ -9,6 +9,7 @@ open System.IO
 open Constants
 open Builtins
 open LineParser
+open LineWriter
 open Model
 
 /// For a set of strings, will return the common start string.
@@ -51,64 +52,16 @@ let private attemptTabCompletion soFar pos =
     with
         | :? IOException -> soFar, pos // Invalid path or file access, so treat as not completable. 
 
-/// Writes out a list of tokens to the output, coloured appropriately.
-/// This also ensures the print out is aligned with the prompt
-let private writeTokens promptPos tokens = 
-    let align () = if Console.CursorLeft < promptPos then Console.CursorLeft <- promptPos
-    let printAligned (s: string) = 
-        let lines = s.Split "\r\n"
-        lines |> Array.iteri (fun i line -> 
-            align ()
-            if line <> "" then printf "%s " line
-            if i <> Array.length lines - 1 then 
-                printfn "")
-    tokens 
-    |> List.iter (fun token ->
-        match token with
-        | Command (s, args) -> 
-            apply Colours.command
-            printAligned s
-            apply Colours.argument
-            args |> Seq.iter printAligned
-        | Code s ->
-            apply Colours.code
-            printAligned s
-        | Pipe ->
-            apply Colours.pipe
-            printAligned "|>"
-        | Out s ->
-            apply Colours.pipe
-            printAligned ">>"
-            apply Colours.argument
-            printAligned s
-        | Whitespace n ->
-            printAligned (String (' ', n))
-        | Linebreak ->
-            printfn "")
-
 /// Reads a line of input from the user, enhanced for automatic tabbing and the like.
 /// Prior is a list of prior input lines, used for history navigation
 let readLine (prior: string list) = 
     let startPos = Console.CursorLeft
     let startLine = Console.CursorTop
+    // The maximum number of lines to clear is calculated based on the prior history.
+    // E.g. if there is a prior command that is four lines long, then whenever the output is printed,
+    // four lines are cleared.
     let linesToClear = ""::prior |> Seq.map (fun p -> p.Split "\r\n" |> Seq.length) |> Seq.max
 
-    /// This ensures the output is cleared of prior characters before printing. 
-    /// It goes over the maximum number of lines of any prior entry, which ensures when jumping through history the output looks write.
-    let clearLines () =
-        [1..linesToClear] |> Seq.iter (fun _ -> printfn "%s" (String (' ', Console.WindowWidth - Console.CursorLeft - 1)))
-        Console.CursorTop <- startLine
-
-    /// Takes a string (single or multiline) and prints it coloured by type to the output.
-    /// By doing this everytime a character is read, changes to structure can be immediately reflected.
-    let printFormatted (soFar: string) =
-        let parts = parts soFar // From Terminal.fs, breaks the input into its parts
-        let tokens = tokens parts // Also from Terminal.fs, groups and tags the parts by type (e.g. Code)
-        clearLines ()
-        writeTokens startPos tokens // Writes the types out, coloured.
-        // finally, return the last non-whitespace token
-        tokens |> List.filter (function | Whitespace _ | Linebreak -> false | _ -> true) |> List.tryLast
-    
     /// For operations that alter the current string at pos (e.g. delete) 
     /// the last line position in the total string needs to be determined.
     let lastLineStart (soFar: string) =
@@ -124,9 +77,10 @@ let readLine (prior: string list) =
         Console.CursorVisible <- false
         Console.CursorLeft <- startPos
         Console.CursorTop <- startLine
-        // The printformatted function converts to token types for colouring. As part of this, the last token type can be retrieved which 
-        // alters how some of the keys below work (specifically tabbing, which does tab completion for commands but tab spaces for code).
-        let lastTokenType = printFormatted soFar
+        // The printFormatted function (from the LineWriter module) converts to token types for colouring. 
+        // As part of this, the last token type can be retrieved which alters how some of the keys below work (specifically tabbing, 
+        // which does tab completion for commands but tab spaces for code).
+        let lastTokenType = printFormatted soFar linesToClear startPos startLine
         Console.CursorLeft <- startPos + pos
         Console.CursorVisible <- true
         

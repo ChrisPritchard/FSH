@@ -55,14 +55,12 @@ let private attemptTabCompletion soFar pos =
 /// This also ensures the print out is aligned with the prompt
 let private writeTokens promptPos tokens = 
     let align () = if Console.CursorLeft < promptPos then Console.CursorLeft <- promptPos
-    let clearLine () = printf "%s" (String (' ', Console.WindowWidth - Console.CursorLeft - 1))
     let printAligned (s: string) = 
         let lines = s.Split "\r\n"
         lines |> Array.iteri (fun i line -> 
             align ()
             if line <> "" then printf "%s " line
             if i <> Array.length lines - 1 then 
-                clearLine ()
                 printfn "")
     tokens 
     |> List.iter (fun token ->
@@ -86,21 +84,27 @@ let private writeTokens promptPos tokens =
         | Whitespace n ->
             printAligned (String (' ', n))
         | Linebreak ->
-            clearLine ()
             printfn "")
-    clearLine ()
 
 /// Reads a line of input from the user, enhanced for automatic tabbing and the like.
 /// Prior is a list of prior input lines, used for history navigation
 let readLine (prior: string list) = 
     let startPos = Console.CursorLeft
     let startLine = Console.CursorTop
+    let linesToClear = ""::prior |> Seq.map (fun p -> p.Split "\r\n" |> Seq.length) |> Seq.max
+
+    /// This ensures the output is cleared of prior characters before printing. 
+    /// It goes over the maximum number of lines of any prior entry, which ensures when jumping through history the output looks write.
+    let clearLines () =
+        [1..linesToClear] |> Seq.iter (fun _ -> printfn "%s" (String (' ', Console.WindowWidth - Console.CursorLeft - 1)))
+        Console.CursorTop <- startLine
 
     /// Takes a string (single or multiline) and prints it coloured by type to the output.
     /// By doing this everytime a character is read, changes to structure can be immediately reflected.
     let printFormatted (soFar: string) =
         let parts = parts soFar // From Terminal.fs, breaks the input into its parts
         let tokens = tokens parts // Also from Terminal.fs, groups and tags the parts by type (e.g. Code)
+        clearLines ()
         writeTokens startPos tokens // Writes the types out, coloured.
         // finally, return the last non-whitespace token
         tokens |> List.filter (function | Whitespace _ | Linebreak -> false | _ -> true) |> List.tryLast

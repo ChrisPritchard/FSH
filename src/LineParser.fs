@@ -62,6 +62,8 @@ let parts s =
                 parts "" None last next (fun next -> acc (sprintf "\"%s\"" soFar::next))
             | ' ', None when last <> '\\' ->
                 parts "" None last next (fun next -> acc (soFar::next))
+            | '\n', None when soFar = "\r" ->
+                parts "" None last next (fun next -> acc ("\r\n"::next))
             | _ -> 
                 parts (soFar + string c) wrapped c next acc
     let raw = parts "" None ' ' s id // The blank space here, ' ', is just a dummy initial state that ensures the first char will be treated as a new token.

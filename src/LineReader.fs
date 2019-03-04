@@ -60,7 +60,7 @@ let private writeTokens promptPos tokens =
         let lines = s.Split "\r\n"
         lines |> Array.iteri (fun i line -> 
             align ()
-            printf "%s " line 
+            if line <> "" then printf "%s " line
             if i <> Array.length lines - 1 then 
                 clearLine ()
                 printfn "")

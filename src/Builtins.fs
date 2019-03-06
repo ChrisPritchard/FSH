@@ -89,44 +89,49 @@ let private cat args writeOut writeError =
 
 /// Copies a file into a new location.
 let private cp args writeOut writeError = 
-    if List.length args <> 2 then
+    if List.length args < 2 then
         writeError "wrong number of arguments: please specify source and dest"
     else
-        let source = Path.Combine(currentDir(), args.[0])
+        let isForced = args.[0] = "-f"
+        let source = Path.Combine(currentDir(), args.[if isForced then 1 else 0])
         if not (File.Exists source) then
             writeError "source file path does not exist or is invalid"
         else
-            let dest = Path.Combine(currentDir(), args.[1])
+            let dest = Path.Combine(currentDir(), args.[if isForced then 2 else 1])
             let isDir = Directory.Exists dest
             let baseDir = Path.GetDirectoryName dest
             if not isDir && not (Directory.Exists baseDir) then
                 writeError "destination directory or file path does not exist or is invalid"
-            elif File.Exists dest then
+            elif not isForced  && not isDir && File.Exists dest then
                 writeError "destination file already exists"
             elif not isDir then
-                File.Copy (source, dest)
+                File.Move (source, dest)
                 writeOut "file copied"
             else
                 let fileName = Path.GetFileName source
                 let dest = Path.Combine(dest, fileName)
-                File.Copy (source, dest)
-                writeOut "file copied"
+                if not isForced && File.Exists dest then
+                    writeError "destination file already exists"
+                else
+                    File.Move (source, dest)
+                    writeOut "file copied"   
 
 /// Moves a file to a new location.
 let private mv args writeOut writeError = 
-    if List.length args <> 2 then
+    if List.length args < 2 then
         writeError "wrong number of arguments: please specify source and dest"
     else
-        let source = Path.Combine(currentDir(), args.[0])
+        let isForced = args.[0] = "-f"
+        let source = Path.Combine(currentDir(), args.[if isForced then 1 else 0])
         if not (File.Exists source) then
             writeError "source file path does not exist or is invalid"
         else
-            let dest = Path.Combine(currentDir(), args.[1])
+            let dest = Path.Combine(currentDir(), args.[if isForced then 2 else 1])
             let isDir = Directory.Exists dest
             let baseDir = Path.GetDirectoryName dest
             if not isDir && not (Directory.Exists baseDir) then
                 writeError "destination directory or file path does not exist or is invalid"
-            elif not isDir && File.Exists dest then
+            elif not isForced  && not isDir && File.Exists dest then
                 writeError "destination file already exists"
             elif not isDir then
                 File.Move (source, dest)
@@ -134,7 +139,7 @@ let private mv args writeOut writeError =
             else
                 let fileName = Path.GetFileName source
                 let dest = Path.Combine(dest, fileName)
-                if File.Exists dest then
+                if not isForced && File.Exists dest then
                     writeError "destination file already exists"
                 else
                     File.Move (source, dest)

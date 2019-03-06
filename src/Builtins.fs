@@ -105,7 +105,7 @@ let private cp args writeOut writeError =
             elif not isForced  && not isDir && File.Exists dest then
                 writeError "destination file already exists"
             elif not isDir then
-                File.Move (source, dest)
+                File.Copy (source, dest)
                 writeOut "file copied"
             else
                 let fileName = Path.GetFileName source
@@ -113,7 +113,7 @@ let private cp args writeOut writeError =
                 if not isForced && File.Exists dest then
                     writeError "destination file already exists"
                 else
-                    File.Move (source, dest)
+                    File.Copy (source, dest)
                     writeOut "file copied"   
 
 /// Moves a file to a new location.

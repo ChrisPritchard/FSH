@@ -105,6 +105,7 @@ let private cp args writeOut writeError =
             elif not isForced  && not isDir && File.Exists dest then
                 writeError "destination file already exists"
             elif not isDir then
+                if File.Exists dest then File.Delete dest
                 File.Copy (source, dest)
                 writeOut "file copied"
             else
@@ -113,6 +114,7 @@ let private cp args writeOut writeError =
                 if not isForced && File.Exists dest then
                     writeError "destination file already exists"
                 else
+                    if File.Exists dest then File.Delete dest
                     File.Copy (source, dest)
                     writeOut "file copied"   
 
@@ -131,9 +133,10 @@ let private mv args writeOut writeError =
             let baseDir = Path.GetDirectoryName dest
             if not isDir && not (Directory.Exists baseDir) then
                 writeError "destination directory or file path does not exist or is invalid"
-            elif not isForced  && not isDir && File.Exists dest then
+            elif not isForced && not isDir && File.Exists dest then
                 writeError "destination file already exists"
             elif not isDir then
+                if File.Exists dest then File.Delete dest
                 File.Move (source, dest)
                 writeOut "file moved"
             else
@@ -142,6 +145,7 @@ let private mv args writeOut writeError =
                 if not isForced && File.Exists dest then
                     writeError "destination file already exists"
                 else
+                    if File.Exists dest then File.Delete dest
                     File.Move (source, dest)
                     writeOut "file moved"     
 

@@ -47,7 +47,8 @@ let private attemptTabCompletion soFar pos =
             soFar, pos // no change
         else
             let matched = if candidates.Length = 1 then candidates.[0] else common asFile.Length candidates
-            let soFar = soFar.[0..pos-last.Length-1] + Path.Combine(asDirectory, matched)
+            let finalDir = if asDirectory = currentDir () then "" else asDirectory
+            let soFar = soFar.[0..pos-last.Length-1] + Path.Combine(finalDir, matched)
             soFar, soFar.Length
     with
         | :? IOException -> soFar, pos // Invalid path or file access, so treat as not completable. 

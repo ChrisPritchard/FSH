@@ -142,18 +142,19 @@ let private mv args writeOut writeError =
 
 /// Removes a file or directory.             
 let private rm args writeOut writeError =
-    if List.isEmpty args then
+    if List.length args < 1 then
         writeError "no target specified"
     else
-        let target = Path.Combine(currentDir(), args.[0])
+        let isForced = args.[0] = "-f"
+        let target = Path.Combine(currentDir(), args.[if isForced then 1 else 0])
         if File.Exists target then
             File.Delete target
             writeOut "file deleted"
         else if Directory.Exists target then
-            if not (Array.isEmpty (Directory.GetFiles target)) then
+            if not isForced && not (Array.isEmpty (Directory.GetFiles target)) then
                 writeError "directory is not empty"
             else
-                Directory.Delete target
+                Directory.Delete (target, isForced)
                 writeOut "directory deleted"
         else
             writeError "file or directory does not exist"

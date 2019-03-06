@@ -126,7 +126,7 @@ let private mv args writeOut writeError =
             let baseDir = Path.GetDirectoryName dest
             if not isDir && not (Directory.Exists baseDir) then
                 writeError "destination directory or file path does not exist or is invalid"
-            elif File.Exists dest then
+            elif not isDir && File.Exists dest then
                 writeError "destination file already exists"
             elif not isDir then
                 File.Move (source, dest)
@@ -134,8 +134,11 @@ let private mv args writeOut writeError =
             else
                 let fileName = Path.GetFileName source
                 let dest = Path.Combine(dest, fileName)
-                File.Move (source, dest)
-                writeOut "file moved"     
+                if File.Exists dest then
+                    writeError "destination file already exists"
+                else
+                    File.Move (source, dest)
+                    writeOut "file moved"     
 
 /// Removes a file or directory.             
 let private rm args writeOut writeError =
@@ -145,7 +148,7 @@ let private rm args writeOut writeError =
         let target = Path.Combine(currentDir(), args.[0])
         if File.Exists target then
             File.Delete target
-            writeError "file deleted"
+            writeOut "file deleted"
         else if Directory.Exists target then
             if not (Array.isEmpty (Directory.GetFiles target)) then
                 writeError "directory is not empty"

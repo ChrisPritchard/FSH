@@ -2,6 +2,8 @@
 
 FSH (**F**# **Sh**ell - pronounced like 'fish') is a shell, like CMD, Powershell or Bash, entirely written in F#.
 
+(**Note**: I know there is another shell called fish out there (the [Friendly Interactive Shell](https://github.com/fish-shell/fish-shell)). But what else would I call a F# Shell but FSH?)
+
 ## Basic Interactions
 
 In addition to normal shell features (folder navigation, creation, deletion, echo etc.), FSH also supports piping and F# interactive. You can run code to declare F# functions, then use those functions as part of a piping operation with the other builtin commands. You can also just declare anonymous expressions for piping.

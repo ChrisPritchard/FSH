@@ -116,7 +116,7 @@ Code is run in [Interactive.fs](/src/Interactive.fs), which wraps FSI. For furth
 
 ## Why?
 
-This has been developed for the 2019 F# Applied Competition, as an educational project, over the course of about a month. 
+This has been developed for the **[2019 F# Applied Competition](http://foundation.fsharp.org/applied_fsharp_challenge)**, as an educational project, over the course of about a month. 
 
 The idea came from PowerShell, which as a developer who works primarily on windows machines, is my default shell. However, PowerShell syntax is very verbose, especially when using .NET code in-line; a shell with a simpler, more bash- or cmd-like syntax combined with the light syntax and type inferrence of F# seemed like a good thing to make into a proof-of-concept.
 

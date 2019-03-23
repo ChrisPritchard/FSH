@@ -39,12 +39,18 @@ let parts s =
     // by shifting where the soFar and recursively parsed tail/remainder is pieced together.
     let rec parts soFar wrapped last remainder acc =
         if remainder = "" then
+            // If a wrapping op was in progress, add the start token to be faithful to user input.
             match wrapped with
-            | Some (c, _) -> acc [(string c + soFar)] // If a wrapping op was in progress, add the start token to be faithful to user input.
+            | Some (c, _) -> 
+                // { is a special wrap token that indicates an inner code string (used so parentheses 
+                // in such strings are not captured in the bracket push - see issue #2 on Github)
+                let ch = if c = '{' || c = '[' then "(" else string c
+                acc [ch + soFar]
             | None -> acc (if soFar <> "" then [soFar] else [])
         else
             let c, next = remainder.[0], remainder.[1..]
             match c, wrapped with
+            // brackets control code sections, changing how inner characters are parsed
             | '(', None when soFar = "" ->
                 let nextWrapped = Some ('(', 1)
                 parts soFar nextWrapped last next acc
@@ -56,10 +62,21 @@ let parts s =
             | ')', Some ('(', n) when last <> '\\' -> // Bracket popping.
                 let nextWrapped = Some ('(', n - 1)
                 parts (soFar + ")") nextWrapped last next acc
+            // quotes are primarily used to wrap arguments with internal spaces
             | '\"', None when soFar = "" -> 
                 parts soFar (Some ('\"', 1)) last next acc // Quotes always have a 'stack' of 1, as they cant be pushed/popped like brackets.
             | '\"', Some ('\"', 1) when last <> '\\' ->
                 parts "" None last next (fun next -> acc (sprintf "\"%s\"" soFar::next))
+             // if in code (wrapping '(') then quotes indicate a string. { and [ prevent the bracket push failing
+            | '\"', Some ('(', n) -> 
+                parts (soFar + "\"") (Some ('{', n)) last next acc
+            | '\"', Some ('{', n) -> 
+                parts (soFar + "\"") (Some ('(', n)) last next acc
+            | ''', Some ('(', n) -> 
+                parts (soFar + "'") (Some ('[', n)) last next acc
+            | ''', Some ('[', n) -> 
+                parts (soFar + "'") (Some ('(', n)) last next acc
+            // spaces sperate parts, as long as not in a wrapped section
             | ' ', None when last <> '\\' ->
                 parts "" None last next (fun next -> acc (soFar::next))
             | '\n', None when soFar = "\r" ->

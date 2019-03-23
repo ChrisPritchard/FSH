@@ -96,7 +96,7 @@ let tokens partlist =
         | [] -> acc []
         | head::remainder ->
             match head with 
-            | "\r\n" -> 
+            | (s: string) when s.StartsWith "\r\n" -> 
                 tokens remainder (fun next -> acc (Linebreak::next))
             | s when String.IsNullOrWhiteSpace s ->
                 tokens remainder (fun next -> acc (Whitespace s.Length::next))

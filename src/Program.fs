@@ -128,10 +128,12 @@ let main _ =
     /// Output is printed into string builders if intermediate tokens, or to the console out if the last.
     /// In this way, the last token can print in real time.
     let processToken isLastToken lastResult token =
+        let output, writeOut, writeError = writeMethods isLastToken
         match lastResult with
-        | Error _ -> lastResult
+        | Error ex -> 
+            if isLastToken then writeError ex // no processing occurs after the last result, so the error needs to be printed
+            lastResult
         | Ok s ->
-            let output, writeOut, writeError = writeMethods isLastToken
             match token with
             | Command (name, args) ->
                 let args = if s <> "" then args @ [s] else args

@@ -4,15 +4,13 @@
 
 open System
 open System.IO
-open System.Diagnostics
-open System.ComponentModel
 open Constants
 open Model
 open Builtins
 open LineParser
 open LineReader
 open Interactive
-open System.Runtime.InteropServices
+open External
 
 [<EntryPoint>]
 let main _ =
@@ -28,42 +26,9 @@ let main _ =
     let fsi = Fsi ()
     printfn "done"
     printfn "For a list of commands type '?' or 'help'"
-   
-    /// Attempts to run an executable (not a builtin like cd or dir) and to feed the result to the output.
-    let rec launchProcess fileName args writeOut writeError =
-        use op = // As Process is IDisposable, 'use' here ensures it is cleaned up.
-            ProcessStartInfo(fileName, args |> String.concat " ",
-                UseShellExecute = false,
-                RedirectStandardOutput = true, // Output is redirected so it can be captured by the events below.
-                RedirectStandardError = true, // Error is also redirected for capture.
-                RedirectStandardInput = false) // Note we don't redirect input, so that regular console input can be sent to the process.
-            |> fun i -> new Process (StartInfo = i) // Because Process is IDisposable, we use the recommended 'new' syntax.
-
-        op.OutputDataReceived.Add(fun e -> writeOut e.Data |> ignore) // These events capture output and error, and feed them into the writeMethods.
-        op.ErrorDataReceived.Add(fun e -> writeError e.Data |> ignore)
-        Console.CursorVisible <- true // so when receiving input from the child process, it has a cursor
-
-        try
-            op.Start () |> ignore
-
-            op.BeginOutputReadLine () // Necessary so that the events above will fire: the process is asynchronously listened to.
-            op.WaitForExit ()
-            op.CancelOutputRead ()
-        with
-            | :? Win32Exception as ex -> // Even on linux/osx, this is the exception thrown.
-                // If on windows and the error the file isn't an executable, try piping through explorer.
-                // This will cause explorer to query the registry for the default handler program.
-                if ex.Message = notExecutableError && RuntimeInformation.IsOSPlatform OSPlatform.Windows then
-                    launchProcess "explorer" (fileName::args) writeOut writeError
-                else
-                    // Will USUALLY occur when trying to run a process that doesn't exist.
-                    // But running something you don't have rights too will also throw this.
-                    writeError (sprintf "%s: %s" fileName ex.Message)
-        // Hide the cursor.
-        Console.CursorVisible <- false
     
     /// Attempts to run either help, a builtin, or an external process based on the given command and args
-    let runCommand command args writeOut writeError =
+    let runCommand command args lastResult writeOut writeError =
         // Help (or ?) are special builtins, not part of the main builtin map (due to loading order).
         if command = "help" || command = "?" then
             help args writeOut writeError
@@ -76,7 +41,10 @@ let main _ =
                 | :? UnauthorizedAccessException as ex ->
                     writeError (sprintf "%s failed fully/partially with error:\r\n%s" command ex.Message)
             | None -> // If no builtin is found, try to run the users input as a execute process command.
-                launchProcess command args writeOut writeError
+                if lastResult then
+                    launchProcessWithoutCapture command args
+                else
+                    launchProcess command args writeOut writeError
 
     /// Attempts to run code as an expression or interaction. 
     /// If the last result is not empty, it is set as a value that is applied to the code as a function parameter.
@@ -120,10 +88,10 @@ let main _ =
             if isLastToken then 
                 (fun (s:string) ->
                     apply Colours.goodOutput
-                    Console.WriteLine s),
+                    printfn "%s" s),
                 (fun (s:string) ->
                     apply Colours.errorOutput
-                    Console.WriteLine s)
+                    printfn "%s" s)
             else
                 output.writeOut, output.writeError
         output, writeOut, writeError
@@ -141,7 +109,7 @@ let main _ =
             match token with
             | Command (name, args) ->
                 let args = if s <> "" then args @ [s] else args
-                runCommand name args writeOut writeError
+                runCommand name args isLastToken writeOut writeError
             | Code code ->
                 runCode s code writeOut writeError
             | Out path ->
@@ -154,7 +122,7 @@ let main _ =
 
     /// Splits up what has been entered into a set of tokens, then runs each in turn feeding the result of the previous as the input to the next.
     /// The last token to be processed prints directly to the console out.
-    let processEntered (s : string) =
+    let executeEntered (s : string) =
         if String.IsNullOrWhiteSpace s then () // nothing specified so just loop
         else 
             let parts = parts s
@@ -176,7 +144,7 @@ let main _ =
         let entered = readLine prior
         if entered.Trim() = "exit" then ()
         else
-            processEntered entered
+            executeEntered entered
             coreLoop (entered::prior)
 
     // Start the core loop with no prior command history. FSH begins!

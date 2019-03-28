@@ -17,6 +17,7 @@
     <Compile Include="LineWriter.fs" />
     <Compile Include="LineReader.fs" />
     <Compile Include="Interactive.fs" />
+    <Compile Include="External.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

@@ -70,7 +70,11 @@ let main _ =
         else
             match Map.tryFind command builtinMap with
             | Some f -> 
-                f args writeOut writeError
+                try
+                    f args writeOut writeError
+                with
+                | :? UnauthorizedAccessException as ex ->
+                    writeError (sprintf "%s failed fully/partially with error:\r\n%s" command ex.Message)
             | None -> // If no builtin is found, try to run the users input as a execute process command.
                 launchProcess command args writeOut writeError
 

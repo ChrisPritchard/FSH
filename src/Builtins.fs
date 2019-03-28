@@ -190,12 +190,12 @@ let builtins =
         "ls", (dir, "same as dir, will list all files and directories. arguments are [path] [searchPattern], both optional")
         "cd", (cd, "changes the current directory to the directory specified by the first argument")
         "mkdir", (mkdir, "creates a new directory at the position specified by the first argument")
-        "rmdir", (rmdir, "removes an empty directory at the position specified by the first argument")
+        "rmdir", (rmdir, "removes a directory (use 'rmdir -f [dir]' to remove directories containing files)")
         "cat", (cat, "prints the contents of the file specified to the output")
-        "cp", (cp, "copies the source file to the destination folder or filepath")
-        "mv", (mv, "moves the source file to the destination folder or filepath")
-        "rm", (rm, "same as del, deletes the target file or empty directory")
-        "del", (rm, "same as rm, deletes the target file or empty directory")
+        "cp", (cp, "copies the source file to the destination folder or filepath (use cp -f [src] [dest] to overwrite)")
+        "mv", (mv, "moves the source file to the destination folder or filepath (use mv -f [src] [dest] to overwrite)")
+        "rm", (rm, "same as del, deletes the target file or directory (use rm -f [dir] to delete a directory containing files)")
+        "del", (rm, "same as rm, deletes the target file or directory (use del -f [dir] to delete a directory containing files)")
         "env", (env, "either lists all env vars, reads a specific var, or sets a var to a value")
         // The following three special builtins are here so that help can access their content.
         // However they have no implementation, as they are invoked by the coreloop and processCommand methods 

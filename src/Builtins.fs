@@ -69,13 +69,14 @@ let private rmdir args writeOut writeError =
     if List.isEmpty args then
         writeError "no directory name speciifed"
     else
-        let path = Path.Combine (currentDir(), args.[0])
+        let isForced = args.[0] = "-f"
+        let path = Path.Combine (currentDir(), args.[if isForced then 1 else 0])
         if not (Directory.Exists path) then
             writeError "directory does not exist"
-        elif Directory.GetFiles (path, "*", SearchOption.AllDirectories) |> Array.isEmpty |> not then
+        elif not isForced && Directory.GetFiles (path, "*", SearchOption.AllDirectories) |> Array.isEmpty |> not then
             writeError "directory was not empty"
         else
-            Directory.Delete path |> ignore
+            Directory.Delete (path, isForced) |> ignore
             writeOut "directory deleted"
 
 /// Reads out the content of a file to the output.

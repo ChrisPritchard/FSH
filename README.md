@@ -8,11 +8,11 @@ In addition to normal shell features (folder navigation, creation, deletion, ech
 
 To demonstrate what this means, using FSH, you could type a line like:
 
-	echo hello world |> (fun s -> s.ToUpper()) >> result.txt
+	echo hello world |> (fun s -> s.ToUpper()) > result.txt
 
 Which would create a text file in the current directory called result.txt, containing the text `HELLO WORLD`
 
-You can see in the above sample that to pipe between processable 'tokens' (like a command or code) you use `|>` just like in F#. And to run F# code, you wrap it with `(` and `)`. In the sample the built-in command `echo` with the arguments `hello world` is piped to the code expression `fun s -> s.ToUpper()`, then piped again to the result.txt file (`>>` is a special pipe that sends to a file rather than console out).
+You can see in the above sample that to pipe between processable 'tokens' (like a command or code) you use `|>` just like in F#. And to run F# code, you wrap it with `(` and `)`. In the sample the built-in command `echo` with the arguments `hello world` is piped to the code expression `fun s -> s.ToUpper()`, then piped again to the result.txt file (`>` is a special pipe that sends to a file rather than console out - >> is also supported to append rather than overrite).
 
 As you type the above, the text is coloured automatically by the type of expression you are typing.
 
@@ -63,7 +63,7 @@ Any shell has a number of commands that you can run, aside from things like exte
 - **cd [path]**: change the current directory. E.g. `cd /` or `cd ..` to go to root or one directory up.
 - **echo [text]**: prints the arguments out as text - quite useful for piping
 - **cat [filename]** reads a file and prints out its output - also useful for piping
-- **>> [filename]** prints out the piped in content into a file.
+- **> [filename]** prints out the piped in content into a file (overriting; **>>** appends instead).
 
 There are almost a dozen further commands, like **rm**, **mkdir**, **env** etc.
 
@@ -92,7 +92,7 @@ There is a special code expression, `(*)`. When This token is parsed, it treats 
 
 For example, say you ran this line:
 
-	echo printfn "hello world from FSH!" >> greeter.fs
+	echo printfn "hello world from FSH!" > greeter.fs
 
 You could then read and evaluate this file using:
 

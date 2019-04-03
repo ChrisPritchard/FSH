@@ -104,11 +104,11 @@ let tokens partlist =
                 tokens remainder (fun next -> acc (Pipe::next))
             | ">" ->
                 match remainder with
-                | path::_ -> acc [Out (true, path)]
+                | path::_ -> acc [Out (false, path)]
                 | _ -> acc [Out (true, "")]
             | ">>" ->
                 match remainder with
-                | path::_ -> acc [Out (false, path)]
+                | path::_ -> acc [Out (true, path)]
                 | _ -> acc [Out (false, "")]
             | s when s.[0] = '(' && (remainder = [] || s.[s.Length - 1] = ')') ->
                 tokens remainder (fun next -> acc (Code s::next))

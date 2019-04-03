@@ -15,17 +15,34 @@ open External
 [<EntryPoint>]
 let main _ =
 
+    // pick up the current console colour, so we can return to it on exit
+    let currentConsoleColour = Console.ForegroundColor
+    // Generally, the cursor is hidden when writing text that isn't from the user. 
+    // This is to prevent an ugly 'flicker'.
+    Console.CursorVisible <- false  
+
     // Below is the opening intro and help info lines of FSH. 
     // They are invoked here so fsi can be instantiated, putting it in scope of code operations below.
+   
+    printc Colours.title " -- FSH: FSharp Shell -- \r\n"
+    printf "version: "; printc Colours.goodOutput "2019.4.4.1\r\n"
 
-    Console.CursorVisible <- false  // Generally, the cursor is hidden when writing text that isn't from the user. This is to prevent an ugly 'flicker'.
-    apply Colours.title
-    printfn " -- FSH: FSharp Shell -- "
-    apply Colours.neutral
-    printf "starting FSI..." // Booting FSI takes a short but noticeable amount of time.
+    // Booting FSI takes a short but noticeable amount of time.
+    printf "starting "; printc Colours.code "FSI"; printf "..."
     let fsi = Fsi ()
     printfn "done"
-    printfn "For a list of commands type '?' or 'help'"
+
+    printf "For a list of commands type '"
+    printc Colours.command "?"
+    printf "' or '"
+    printc Colours.command "help"
+    printfn "'"
+
+    printf "F# code can be executed via wrapping with '"
+    printc Colours.code "("
+    printf "' and '"
+    printc Colours.code ")"
+    printfn "'"
     
     /// Attempts to run either help, a builtin, or an external process based on the given command and args
     let runCommand command args lastResult writeOut writeError =
@@ -150,4 +167,7 @@ let main _ =
     // Start the core loop with no prior command history. FSH begins!
     coreLoop []
 
+    // return to the original console colour
+    Console.ForegroundColor <- currentConsoleColour
+    Console.CursorVisible <- true
     0

@@ -23,6 +23,14 @@ module Colours =
 /// Intended to be used with the colours module, e.g. apply Colours.prompt.
 let apply colour = Console.ForegroundColor <- colour
 
+/// This simple utility method switches colour to print a piece of text then switches back
+/// It is primarily used for the intro text of FSH
+let printc colour text = 
+    let current = Console.ForegroundColor
+    apply colour
+    printf "%s" text
+    apply current
+
 /// When tabbing inside a code expressiom, this controls how many spaces are added.
 let codeSpaces = 4
 

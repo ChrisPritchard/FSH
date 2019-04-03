@@ -102,16 +102,20 @@ let tokens partlist =
                 tokens remainder (fun next -> acc (Whitespace s.Length::next))
             | "|>" ->
                 tokens remainder (fun next -> acc (Pipe::next))
+            | ">" ->
+                match remainder with
+                | path::_ -> acc [Out (true, path)]
+                | _ -> acc [Out (true, "")]
             | ">>" ->
                 match remainder with
-                | path::_ -> acc [Out path]
-                | _ -> acc [Out ""]
+                | path::_ -> acc [Out (false, path)]
+                | _ -> acc [Out (false, "")]
             | s when s.[0] = '(' && (remainder = [] || s.[s.Length - 1] = ')') ->
                 tokens remainder (fun next -> acc (Code s::next))
             | command ->
                 let rec findArgs list =
                     match list with
-                    | [] | "|>"::_ | ">>"::_ -> []
+                    | [] | "|>"::_ | ">"::_ | ">>"::_ -> []
                     | ""::remainder ->
                         " "::findArgs remainder
                     | head::remainder -> 

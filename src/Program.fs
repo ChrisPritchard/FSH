@@ -89,9 +89,12 @@ let main _ =
             fsi.EvalExpression toEval writeOut writeError
             
     /// The implementation of the '>> filename' token. Takes the piped in content and saves it to a file.
-    let runOut content path _ writeError = 
+    let runOut content append path _ writeError = 
         try
-            File.WriteAllText (path, content)
+            if append then 
+                File.AppendAllText (path, content)
+            else
+                File.WriteAllText (path, content)
         with
             | ex -> 
                 writeError (sprintf "Error writing to out %s: %s" path ex.Message)
@@ -129,8 +132,8 @@ let main _ =
                 runCommand name args isLastToken writeOut writeError
             | Code code ->
                 runCode s code writeOut writeError
-            | Out path ->
-                runOut s path writeOut writeError
+            | Out (append, path) ->
+                runOut s append path writeOut writeError
             | Pipe | Whitespace _ | Linebreak -> 
                 // Pipe uses the writeOut function to set the next content to be the pipedin last result 
                 // The Token DU also includes presentation only tokens, like linebreaks and whitespace. These do nothing and so act like pipes.

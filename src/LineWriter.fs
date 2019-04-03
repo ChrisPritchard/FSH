@@ -32,11 +32,11 @@ let private writeTokens promptPos tokens =
         | Pipe ->
             apply Colours.pipe
             printAligned "|>"
-        | Out s ->
+        | Out (append, fileName) ->
             apply Colours.pipe
-            printAligned ">>"
+            printAligned (if append then ">" else ">>")
             apply Colours.argument
-            printAligned s
+            printAligned fileName
         | Whitespace n ->
             printAligned (String (' ', n))
         | Linebreak ->

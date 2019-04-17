@@ -63,7 +63,7 @@ Any shell has a number of commands that you can run, aside from things like exte
 - **cd [path]**: change the current directory. E.g. `cd /` or `cd ..` to go to root or one directory up.
 - **echo [text]**: prints the arguments out as text - quite useful for piping
 - **cat [filename]** reads a file and prints out its output - also useful for piping
-- **> [filename]** prints out the piped in content into a file (overriting; **>>** appends instead).
+- **> [filename]** prints out the piped in content into a file (this overwrites; **>>** appends instead).
 
 There are almost a dozen further commands, like **rm**, **mkdir**, **env** etc.
 

@@ -25,7 +25,7 @@ let main _ =
     // They are invoked here so fsi can be instantiated, putting it in scope of code operations below.
    
     printc Colours.title " -- FSH: FSharp Shell -- \r\n"
-    printf "version: "; printc Colours.goodOutput "2019.4.4.2\r\n"
+    printf "version: "; printc Colours.goodOutput "2019.5.7.0\r\n"
 
     // Booting FSI takes a short but noticeable amount of time.
     printf "starting "; printc Colours.code "FSI"; printf "..."

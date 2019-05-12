@@ -50,7 +50,7 @@ let private clearLines linesToClear startLine =
     |> Seq.iter (fun _ -> 
         let clearLine = String (' ', (Console.WindowWidth - Console.CursorLeft) - 4)
         printfn "%s" clearLine)
-    Console.CursorTop <- startLine - 1
+    Console.CursorTop <- startLine
 
 /// Takes a string (single or multiline) and prints it coloured by type to the output.
 /// By doing this everytime a character is read, changes to structure can be immediately reflected.

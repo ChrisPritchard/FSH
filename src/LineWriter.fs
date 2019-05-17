@@ -57,8 +57,12 @@ let private clearLines linesToClear startLine =
 let printFormatted (soFar: string) linesToClear startPos startLine =
     let parts = parts soFar // From Terminal.fs, breaks the input into its parts
     let tokens = tokens parts // Also from Terminal.fs, groups and tags the parts by type (e.g. Code)
+    
+    // on non-windows platforms, there is an outstanding issue (#10) where clearing lines results in an off by one error
+    // so I have temp disabled this until I can find a fix. Something different with how the console.top works I think in terminal.
     if RuntimeInformation.IsOSPlatform OSPlatform.Windows then
         clearLines linesToClear startLine
+        
     writeTokens startPos tokens // Writes the types out, coloured.
     // finally, return the last non-whitespace token (used to control the behaviour of tab).
     tokens |> List.filter (function | Whitespace _ | Linebreak -> false | _ -> true) |> List.tryLast

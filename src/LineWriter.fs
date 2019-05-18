@@ -55,8 +55,8 @@ let private clearLines linesToClear startLine =
 /// Takes a string (single or multiline) and prints it coloured by type to the output.
 /// By doing this everytime a character is read, changes to structure can be immediately reflected.
 let printFormatted (soFar: string) linesToClear startPos startLine =
-    let parts = parts soFar // From Terminal.fs, breaks the input into its parts
-    let tokens = tokens parts // Also from Terminal.fs, groups and tags the parts by type (e.g. Code)
+    let parts = parts soFar // From LineParser.fs, breaks the input into its parts
+    let tokens = tokens parts // Also from LineParser.fs, groups and tags the parts by type (e.g. Code)
     
     // on non-windows platforms, there is an outstanding issue (#10) where clearing lines results in an off by one error
     // so I have temp disabled this until I can find a fix. Something different with how the console.top works I think in terminal.

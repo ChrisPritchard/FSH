@@ -67,7 +67,7 @@ let readLine (prior: string list) =
     /// the last line position in the total string needs to be determined.
     let lastLineStart (soFar: string) =
         let lastLineBreak = soFar.LastIndexOf newline
-        if lastLineBreak = -1 then 0 else lastLineBreak + 2
+        if lastLineBreak = -1 then 0 else lastLineBreak + newline.Length
 
     /// This recursively prompts for input from the user, producing a final string result on the reception of the Enter key.
     /// As its recursive call is always the last statement, this code is tail recursive. 

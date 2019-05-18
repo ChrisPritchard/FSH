@@ -88,7 +88,7 @@ let readLine (prior: string list) =
         // Blocks here until a key is read.
         let next = Console.ReadKey true
 
-        // The users keys is evaluated as either: Enter (without Shift) meaning done, 
+        // The user's key is evaluated as either: Enter (without Shift) meaning done, 
         // a control key like Backspace, Delete, Arrows (including history up/down using the prior commands list),
         // or, if none of the above, a character to append to the 'soFar' string.
         match next.Key with
@@ -96,7 +96,7 @@ let readLine (prior: string list) =
             Console.CursorVisible <- false // As reading is done, Hide the cursor.
             printfn "" // Write a final newline.
             soFar
-        // Enter with shift pressed adds a new line, aligned with the prompt position.
+        // Enter with shift or control pressed adds a new line, aligned with the prompt position.
         | ConsoleKey.Enter ->
             reader priorIndex (soFar + " \r\n ") 0
         | ConsoleKey.Backspace when Console.CursorLeft <> startPos ->

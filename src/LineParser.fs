@@ -5,6 +5,7 @@ module LineParser
 
 open System
 open Model
+open Common
 
 /// Folds the given string list, joing ""'s into whitespace: "";"" becomes "  "
 let private joinBlanks (raw: string list) =

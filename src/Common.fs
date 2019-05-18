@@ -1,6 +1,6 @@
-﻿/// Constants like colours for the prompt, the prompt token and the like are defined here.
+﻿/// Common configuration like colours for the prompt, the prompt token and the like are defined here.
 /// Certain utility methods like changing the font colour are also defined here, for cross-app use.
-module Constants
+module Common
 
 open System
 

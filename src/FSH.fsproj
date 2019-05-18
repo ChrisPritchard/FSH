@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Constants.fs" />
+    <Compile Include="Common.fs" />
     <Compile Include="Model.fs" />
     <Compile Include="Builtins.fs" />
     <Compile Include="LineParser.fs" />

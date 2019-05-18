@@ -5,7 +5,7 @@ module LineWriter
 open System
 open System.Runtime.InteropServices
 open Model
-open Constants
+open Common
 open LineParser
 
 /// Writes out a list of tokens to the output, coloured appropriately.

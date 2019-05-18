@@ -6,7 +6,7 @@ module LineReader
 
 open System
 open System.IO
-open Constants
+open Common
 open Builtins
 open LineParser
 open LineWriter

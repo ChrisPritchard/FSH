@@ -4,7 +4,7 @@
 
 open System
 open System.IO
-open Constants
+open Common
 open Model
 open Builtins
 open LineParser

@@ -3,7 +3,6 @@
 module LineWriter
 
 open System
-open System.Runtime.InteropServices
 open Model
 open Common
 open LineParser
@@ -13,7 +12,7 @@ open LineParser
 let private writeTokens promptPos tokens = 
     let align () = if Console.CursorLeft < promptPos then Console.CursorLeft <- promptPos
     let printAligned (s: string) = 
-        let lines = s.Split "\r\n"
+        let lines = s.Split newline
         lines |> Array.iteri (fun i line -> 
             align ()
             if line <> "" then printf "%s " line

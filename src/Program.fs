@@ -24,8 +24,8 @@ let main _ =
     // Below is the opening intro and help info lines of FSH. 
     // They are invoked here so fsi can be instantiated, putting it in scope of code operations below.
    
-    printc Colours.title " -- FSH: FSharp Shell -- \r\n"
-    printf "version: "; printc Colours.goodOutput "2019.5.13.1\r\n"
+    printc Colours.title " -- FSH: FSharp Shell -- " + newline
+    printf "version: "; printc Colours.goodOutput "2019.5.13.1" + newline
 
     // Booting FSI takes a short but noticeable amount of time.
     printf "starting "; printc Colours.code "FSI"; printf "..."
@@ -56,7 +56,7 @@ let main _ =
                     f args writeOut writeError
                 with
                 | :? UnauthorizedAccessException as ex ->
-                    writeError (sprintf "%s failed fully/partially with error:\r\n%s" command ex.Message)
+                    writeError (sprintf "%s failed fully/partially with error:%s%s" command newline ex.Message)
             | None -> // If no builtin is found, try to run the users input as a execute process command.
                 if lastResult then
                     launchProcessWithoutCapture command args
@@ -78,8 +78,8 @@ let main _ =
             let toEval = 
                 if code = "(*)" then // the (*) expression in special, as it treats the piped value as code to be evaluated
                     lastResult
-                elif lastResult.Contains "\r\n" then
-                    lastResult.Split ([|"\r\n"|], StringSplitOptions.RemoveEmptyEntries) // Treat a multiline last result as a string array.
+                elif lastResult.Contains newline then
+                    lastResult.Split ([|newline|], StringSplitOptions.RemoveEmptyEntries) // Treat a multiline last result as a string array.
                     |> Array.map (fun s -> s.Replace("\"", "\\\""))
                     |> String.concat "\";\"" 
                     |> fun lastResult -> sprintf "let (piped: string[]) = [|\"%s\"|] in piped |> (%s)" lastResult source

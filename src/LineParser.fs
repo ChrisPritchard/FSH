@@ -19,7 +19,7 @@ let private joinBlanks (raw: string list) =
                 results, last + " "
             elif last = "" then
                 results, next
-            elif last = "\r\n" then
+            elif last = newline then
                 last::results, next
             elif String.IsNullOrWhiteSpace last then
                 last.[0..last.Length - 2]::results, next
@@ -80,7 +80,7 @@ let parts s =
             | ' ', None when last <> '\\' ->
                 parts "" None last next (fun next -> acc (soFar::next))
             | '\n', None when soFar = "\r" ->
-                parts "" None last next (fun next -> acc ("\r\n"::next))
+                parts "" None last next (fun next -> acc (newline::next))
             | _ -> 
                 parts (soFar + string c) wrapped c next acc
     let raw = parts "" None ' ' s id // The blank space here, ' ', is just a dummy initial state that ensures the first char will be treated as a new token.
@@ -96,7 +96,7 @@ let tokens partlist =
         | [] -> acc []
         | head::remainder ->
             match head with 
-            | (s: string) when s.StartsWith "\r\n" -> 
+            | (s: string) when s.StartsWith newline -> 
                 tokens remainder (fun next -> acc (Linebreak::next))
             | s when String.IsNullOrWhiteSpace s ->
                 tokens remainder (fun next -> acc (Whitespace s.Length::next))
@@ -134,7 +134,7 @@ let tokens partlist =
         let max = List.length partlist - 1
         while i <= max do
             let part = partlist.[i]
-            if part = "\r\n" then 
+            if part = newline then 
                 yield Linebreak
                 i <- i + 1
             elif String.IsNullOrWhiteSpace part then 

@@ -16,8 +16,8 @@ let private writeTokens promptPos tokens =
         lines |> Array.iteri (fun i line -> 
             align ()
             if line <> "" then printf "%s " line
-            if i <> Array.length lines - 1 then 
-                printfn "")
+            if i <> lines.Length - 1 then 
+                printf "%s" newline)
     tokens 
     |> List.iter (fun token ->
         match token with
@@ -48,7 +48,8 @@ let private clearLines linesToClear startLine startPos =
     [1..linesToClear] 
     |> Seq.iter (fun n -> 
         let clearLine = String (' ', (Console.WindowWidth - Console.CursorLeft) - 4)
-        if n <> linesToClear then printfn "%s" clearLine
+        if n <> linesToClear 
+        then printf "%s%s" clearLine newline
         else printf "%s" clearLine)
     Console.CursorTop <- startLine
     Console.CursorLeft <- startPos

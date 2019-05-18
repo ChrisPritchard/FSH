@@ -87,8 +87,6 @@ let readLine (prior: string list) =
         
         // Blocks here until a key is read.
         let next = Console.ReadKey true
-        
-        printfn "%A" next.Modifiers
 
         // The users keys is evaluated as either: Enter (without Shift) meaning done, 
         // a control key like Backspace, Delete, Arrows (including history up/down using the prior commands list),

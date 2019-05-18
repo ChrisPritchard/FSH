@@ -88,15 +88,20 @@ let readLine (prior: string list) =
         // Blocks here until a key is read.
         let next = Console.ReadKey true
 
-        // The user's key is evaluated as either: Enter (without Shift) meaning done, 
+        let isShiftPressed =
+            [ ConsoleModifiers.Shift; ConsoleModifiers.Control; ConsoleModifiers.Alt ]
+            |> List.exists (fun m -> next.Modifiers = m) 
+
+        // The user's key is evaluated as either: Enter (without Shift/Alt/Control) meaning done, 
+        // Enter with Shift/Alt/Control meaning newline
         // a control key like Backspace, Delete, Arrows (including history up/down using the prior commands list),
         // or, if none of the above, a character to append to the 'soFar' string.
         match next.Key with
-        | ConsoleKey.Enter when next.Modifiers <> ConsoleModifiers.Shift && next.Modifiers <> ConsoleModifiers.Control ->
+        | ConsoleKey.Enter when not isShiftPressed ->
             Console.CursorVisible <- false // As reading is done, Hide the cursor.
             printfn "" // Write a final newline.
             soFar
-        // Enter with shift or control pressed adds a new line, aligned with the prompt position.
+        // Enter with shift/control/alt pressed adds a new line, aligned with the prompt position.
         | ConsoleKey.Enter ->
             reader priorIndex (soFar + " \r\n ") 0
         | ConsoleKey.Backspace when Console.CursorLeft <> startPos ->

@@ -23,7 +23,9 @@ For something more advanced, you could implement a simple 'grep' command (grep i
 	(let grep (s:string) arr = 
 		arr |> Array.filter (fun line -> line.Contains(s)))
 
-(**Note** that shift+enter will go to a new line, useful for code. Tabbing (four spaces) works as well, shunting the current line forward. Also, by piping arr on the second line, the line parameter does not need a type annotation.)
+(**Note** that shift/alt/control+enter will go to a new line, useful for code. Tabbing (four spaces) works as well, shunting the current line forward. Also, by piping arr on the second line, the line parameter does not need a type annotation.)
+
+(**Note for Linux/OSX** the terminal and System.Console.ConsoleModifiers don't work very well together, so aside from shift, control and alt also work with enter for new lines. Find what works for you - alt+enter worked for me on Ubuntu)
 
 Then use this like:
 

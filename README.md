@@ -2,8 +2,6 @@
 
 FSH (**F**# **Sh**ell - pronounced like 'fish') is a shell, like CMD, Powershell or Bash, entirely written in F#.
 
-**Note for linux/osx users** there is an issue with newlines on these platforms, due to inconsistencies between how System.Console and TextWriter work. I am presently trying to resolve these in the terminal-fixes branch.
-
 ## Basic Interactions
 
 In addition to normal shell features (folder navigation, creation, deletion, echo etc.), FSH also supports piping and F# interactive. You can run code to declare F# functions, then use those functions as part of a piping operation with the other builtin commands. You can also just declare anonymous expressions for piping.
@@ -26,6 +24,8 @@ For something more advanced, you could implement a simple 'grep' command (grep i
 		arr |> Array.filter (fun line -> line.Contains(s)))
 
 (**Note** that shift+enter will go to a new line, useful for code. Tabbing (four spaces) works as well, shunting the current line forward. Also, by piping arr on the second line, the line parameter does not need a type annotation.)
+
+**Note for linux/osx users:** there is an issue with newlines on these platforms, due to inconsistencies between how System.Console and TextWriter work. I am presently trying to resolve these in the terminal-fixes branch.
 
 Then use this like:
 

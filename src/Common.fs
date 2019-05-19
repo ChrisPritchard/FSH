@@ -1,8 +1,9 @@
-﻿/// Constants like colours for the prompt, the prompt token and the like are defined here.
+﻿/// Common configuration like colours for the prompt, the prompt token and the like are defined here.
 /// Certain utility methods like changing the font colour are also defined here, for cross-app use.
-module Constants
+module Common
 
 open System
+open System.Runtime.InteropServices
 
 /// This is presented at the beginning of each line, e.g. FSH c:\>
 let promptName = "FSH"
@@ -30,6 +31,8 @@ let printc colour text =
     apply colour
     printf "%s" text
     apply current
+
+let newline = if RuntimeInformation.IsOSPlatform OSPlatform.Windows then "\r\n" else "\n"
 
 /// When tabbing inside a code expressiom, this controls how many spaces are added.
 let codeSpaces = 4

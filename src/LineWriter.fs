@@ -3,9 +3,8 @@
 module LineWriter
 
 open System
-open System.Runtime.InteropServices
 open Model
-open Constants
+open Common
 open LineParser
 
 /// Writes out a list of tokens to the output, coloured appropriately.
@@ -13,12 +12,12 @@ open LineParser
 let private writeTokens promptPos tokens = 
     let align () = if Console.CursorLeft < promptPos then Console.CursorLeft <- promptPos
     let printAligned (s: string) = 
-        let lines = s.Split "\r\n"
+        let lines = s.Split newline
         lines |> Array.iteri (fun i line -> 
             align ()
             if line <> "" then printf "%s " line
-            if i <> Array.length lines - 1 then 
-                printfn "")
+            if i <> lines.Length - 1 then 
+                printf "%s" newline)
     tokens 
     |> List.iter (fun token ->
         match token with
@@ -45,12 +44,15 @@ let private writeTokens promptPos tokens =
 
 /// This ensures the output is cleared of prior characters before printing. 
 /// It goes over the maximum number of lines of any prior entry, which ensures when jumping through history the output looks write.
-let private clearLines linesToClear startLine =
+let private clearLines linesToClear startLine startPos =
     [1..linesToClear] 
-    |> Seq.iter (fun _ -> 
+    |> Seq.iter (fun n -> 
         let clearLine = String (' ', (Console.WindowWidth - Console.CursorLeft) - 4)
-        printfn "%s" clearLine)
+        if n <> linesToClear 
+        then printf "%s%s" clearLine newline
+        else printf "%s" clearLine)
     Console.CursorTop <- startLine
+    Console.CursorLeft <- startPos
 
 /// Takes a string (single or multiline) and prints it coloured by type to the output.
 /// By doing this everytime a character is read, changes to structure can be immediately reflected.
@@ -58,10 +60,7 @@ let printFormatted (soFar: string) linesToClear startPos startLine =
     let parts = parts soFar // From LineParser.fs, breaks the input into its parts
     let tokens = tokens parts // Also from LineParser.fs, groups and tags the parts by type (e.g. Code)
     
-    // on non-windows platforms, there is an outstanding issue (#10) where clearing lines results in an off by one error
-    // so I have temp disabled this until I can find a fix. Something different with how the console.top works I think in terminal.
-    if RuntimeInformation.IsOSPlatform OSPlatform.Windows then
-        clearLines linesToClear startLine
+    clearLines linesToClear startLine startPos
         
     writeTokens startPos tokens // Writes the types out, coloured.
     // finally, return the last non-whitespace token (used to control the behaviour of tab).

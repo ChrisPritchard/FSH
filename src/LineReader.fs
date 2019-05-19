@@ -6,7 +6,7 @@ module LineReader
 
 open System
 open System.IO
-open Constants
+open Common
 open Builtins
 open LineParser
 open LineWriter
@@ -61,13 +61,13 @@ let readLine (prior: string list) =
     // The maximum number of lines to clear is calculated based on the prior history.
     // E.g. if there is a prior command that is four lines long, then whenever the output is printed,
     // four lines are cleared.
-    let linesToClear = ""::prior |> Seq.map (fun p -> p.Split "\r\n" |> Seq.length) |> Seq.max
+    let linesToClear = ""::prior |> Seq.map (fun p -> p.Split newline |> Seq.length) |> Seq.max
 
     /// For operations that alter the current string at pos (e.g. delete) 
     /// the last line position in the total string needs to be determined.
     let lastLineStart (soFar: string) =
-        let lastLineBreak = soFar.LastIndexOf("\r\n")
-        if lastLineBreak = -1 then 0 else lastLineBreak + 2
+        let lastLineBreak = soFar.LastIndexOf newline
+        if lastLineBreak = -1 then 0 else lastLineBreak + newline.Length
 
     /// This recursively prompts for input from the user, producing a final string result on the reception of the Enter key.
     /// As its recursive call is always the last statement, this code is tail recursive. 
@@ -87,18 +87,23 @@ let readLine (prior: string list) =
         
         // Blocks here until a key is read.
         let next = Console.ReadKey true
-        
-        // The users keys is evaluated as either: Enter (without Shift) meaning done, 
+
+        let isShiftPressed =
+            [ ConsoleModifiers.Shift; ConsoleModifiers.Control; ConsoleModifiers.Alt ]
+            |> List.exists (fun m -> next.Modifiers = m) 
+
+        // The user's key is evaluated as either: Enter (without Shift/Alt/Control) meaning done, 
+        // Enter with Shift/Alt/Control meaning newline
         // a control key like Backspace, Delete, Arrows (including history up/down using the prior commands list),
         // or, if none of the above, a character to append to the 'soFar' string.
         match next.Key with
-        | ConsoleKey.Enter when next.Modifiers <> ConsoleModifiers.Shift ->
+        | ConsoleKey.Enter when not isShiftPressed ->
             Console.CursorVisible <- false // As reading is done, Hide the cursor.
             printfn "" // Write a final newline.
             soFar
-        // Enter with shift pressed adds a new line, aligned with the prompt position.
+        // Enter with shift/control/alt pressed adds a new line, aligned with the prompt position.
         | ConsoleKey.Enter ->
-            reader priorIndex (soFar + " \r\n ") 0
+            reader priorIndex (soFar + newline) 0
         | ConsoleKey.Backspace when Console.CursorLeft <> startPos ->
             let relPos = lastLineStart soFar + pos
             let nextSoFar = soFar.[0..relPos-2] + soFar.[relPos..]
@@ -141,7 +146,7 @@ let readLine (prior: string list) =
                 let newSoFar, newPos =
                     match lastTokenType with
                     | Some (Code code) -> 
-                        if not (code.Contains "\r\n") then soFar, pos
+                        if not (code.Contains newline) then soFar, pos
                         else 
                             let lineStart = lastLineStart soFar
                             let newSoFar = soFar.[..lineStart-1] + String (' ', codeSpaces) + soFar.[lineStart..]

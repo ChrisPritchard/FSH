@@ -80,7 +80,7 @@ let parts s =
             // spaces sperate parts, as long as not in a wrapped section
             | ' ', None when last <> '\\' ->
                 parts "" None last next (fun next -> acc (soFar::next))
-            | '\n', None when soFar = "\r" ->
+            | '\n', None when soFar = "\r" || soFar = "" ->
                 parts "" None last next (fun next -> acc (newline::next))
             | _ -> 
                 parts (soFar + string c) wrapped c next acc

@@ -27,7 +27,7 @@ For something more advanced, you could implement a simple 'grep' command (grep i
 
 (**Further Note for Linux/OSX:** the terminal and System.Console.ConsoleModifiers don't work very well together, so aside from shift, control and alt also work with enter for new lines. Find what works for you - alt+enter worked for me on Ubuntu)
 
-(**Further Further Note for Linux/OSX users:** there is an issue with newlines on these platforms, due to inconsistencies between how System.Console, TextWriter, CursorTop (or something) work. I am presently investigating these issues (issue #10 and #12))
+(**Further Further Note for Linux/OSX:** there is an issue with newlines on these platforms, due to inconsistencies between how System.Console, TextWriter, CursorTop (or something) work. I am presently investigating these issues (issue #10 and #12))
 
 Then use this like:
 

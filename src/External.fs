@@ -6,7 +6,7 @@ open System
 open System.Diagnostics
 open System.ComponentModel
 open System.Runtime.InteropServices
-open Constants
+open Common
 
 /// Attempts to run an executable (not a builtin like cd or dir), ignoring the output
 /// This is used only when the process being run is the last process in the chain, and gives said process full control of the standard out

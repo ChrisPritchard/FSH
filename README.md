@@ -23,7 +23,11 @@ For something more advanced, you could implement a simple 'grep' command (grep i
 	(let grep (s:string) arr = 
 		arr |> Array.filter (fun line -> line.Contains(s)))
 
-(**Note** that shift+enter will go to a new line, useful for code. Tabbing (four spaces) works as well, shunting the current line forward. Also, by piping arr on the second line, the line parameter does not need a type annotation.)
+(**Note:** that shift/alt/control+enter will go to a new line, useful for code. Tabbing (four spaces) works as well, shunting the current line forward. Also, by piping arr on the second line, the line parameter does not need a type annotation.)
+
+(**Further Note for Linux/OSX:** the terminal and System.Console.ConsoleModifiers don't work very well together, so aside from shift, control and alt also work with enter for new lines. Find what works for you - alt+enter worked for me on Ubuntu)
+
+(**Further Further Note for Linux/OSX:** there is an issue with newlines on these platforms, due to inconsistencies between how System.Console, TextWriter, CursorTop (or something) work. I am presently investigating these issues (issue #10 and #14))
 
 Then use this like:
 
@@ -51,6 +55,8 @@ It has been tested in Linux (via Ubuntu 18 under WSL) and on Max OSX, without is
 To run on the command line, navigate to the **/src** directory and use the command `dotnet run`
 
 It was built with Visual Studio 2017 Community (with occasional work done in VS Code) so instead of the CLI, you could open the **FSH.sln** solution file and run using F5 in VS.
+
+Additionally, there are precompiled **releases** available. These were pre-built using dotnet publish for win-x64, linux-x64 and osx-x64, and should run without needing the framework installed. Access these from the releases link.
 
 There are also some XUnit/FsUnit tests defined under /test, there for testing various input scenarios through the parts/tokenisation functions. Run them (if you wish) via `dotnet test` in the **/test** directory.
 

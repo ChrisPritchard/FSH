@@ -7,6 +7,7 @@
     <Description>A command line shell written in F# with integrated F# Interactive</Description>
     <RepositoryUrl>https://github.com/ChrisPritchard/FSH</RepositoryUrl>
     <PackageLicenseUrl>https://github.com/ChrisPritchard/FSH/blob/master/LICENSE</PackageLicenseUrl>
+    <RuntimeIdentifiers>win-x64;linux-x64;osx-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <ItemGroup>

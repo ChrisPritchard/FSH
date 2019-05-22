@@ -47,7 +47,7 @@ let private writeTokens promptPos tokens =
 let private clearLines linesToClear startLine startPos =
     [1..linesToClear] 
     |> Seq.iter (fun n -> 
-        let clearLine = String (' ', (Console.WindowWidth - Console.CursorLeft) - 4)
+        let clearLine = String (' ', (Console.BufferWidth - Console.CursorLeft) - 4)
         if n <> linesToClear 
         then printf "%s%s" clearLine newline
         else printf "%s" clearLine)

@@ -16,7 +16,7 @@ open Model
 let private common startIndex (candidates : string list) =
     // finds the first index that is longer than a candidate or for which two or more candidates differ
     let uncommonPoint = 
-        [startIndex..Console.WindowWidth]
+        [startIndex..Console.BufferWidth]
         |> List.find (fun i ->
             if i >= candidates.[0].Length then true
             else 
@@ -73,8 +73,14 @@ let readLine (prior: string list) =
     /// As its recursive call is always the last statement, this code is tail recursive. 
     let rec reader priorIndex (soFar: string) pos =
 
-        // By printing out the current content of the line after every char
-        // implementing backspace and delete becomes easier.
+        // Ensure the console buffer is wide enough for our text. 
+        // This change solved so, so many issues.
+        let bufferLengthRequired = startPos + soFar.Length
+        if bufferLengthRequired >= Console.BufferWidth then 
+            Console.BufferWidth <- bufferLengthRequired + 1
+
+        // By printing out the current content of the line after every 
+        // char, implementing backspace and delete becomes easier.
         Console.CursorVisible <- false
         Console.CursorLeft <- startPos
         Console.CursorTop <- startLine
@@ -140,30 +146,23 @@ let readLine (prior: string list) =
         // Tab is complex, in that if in code it adds spaces to the line, and if not in code it attempts to finish a path 
         // or command given the last token in soFar. Nothing is done if the tab completion would exceed the maximum line length.
         | ConsoleKey.Tab when soFar <> "" ->
-            if pos + startPos > Console.WindowWidth - 2 then
-                reader priorIndex soFar pos
-            else
-                let newSoFar, newPos =
-                    match lastTokenType with
-                    | Some (Code code) -> 
-                        if not (code.Contains newline) then soFar, pos
-                        else 
-                            let lineStart = lastLineStart soFar
-                            let newSoFar = soFar.[..lineStart-1] + String (' ', codeSpaces) + soFar.[lineStart..]
-                            newSoFar, pos + codeSpaces
-                    | _ ->
-                        attemptTabCompletion soFar pos
-                if newPos + startPos <= Console.WindowWidth - 2 then
-                    reader priorIndex newSoFar newPos
-                else
-                    reader priorIndex soFar pos            
+            let newSoFar, newPos =
+                match lastTokenType with
+                | Some (Code code) -> 
+                    if not (code.Contains newline) then soFar, pos
+                    else 
+                        let lineStart = lastLineStart soFar
+                        let newSoFar = soFar.[..lineStart-1] + String (' ', codeSpaces) + soFar.[lineStart..]
+                        newSoFar, pos + codeSpaces
+                | _ ->
+                    attemptTabCompletion soFar pos
+            reader priorIndex soFar pos            
         // Finally, if none of the above and the key pressed is not a control char (e.g. Alt, Esc), it is appended.
         // Unless the line is already at max length, in which case nothing is done.
         | _ ->
             let c = next.KeyChar
             let lineStart = lastLineStart soFar
-            let maxLineLength = Console.WindowWidth - (if Console.CursorTop = startLine then 3 else 2)
-            if not (Char.IsControl c) && (soFar.Length - lineStart) + startPos < maxLineLength then
+            if not (Char.IsControl c) then
                 let relPos = lineStart + pos
                 reader priorIndex (soFar.[0..relPos-1] + string c + soFar.[relPos..]) (pos + 1)
             else

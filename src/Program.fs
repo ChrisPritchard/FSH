@@ -15,6 +15,8 @@ open External
 [<EntryPoint>]
 let main _ =
 
+    Console.BufferWidth <- 100
+
     // pick up the current console colour, so we can return to it on exit
     let currentConsoleColour = Console.ForegroundColor
     // Generally, the cursor is hidden when writing text that isn't from the user. 

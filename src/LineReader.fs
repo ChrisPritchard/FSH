@@ -156,7 +156,7 @@ let readLine (prior: string list) =
                         newSoFar, pos + codeSpaces
                 | _ ->
                     attemptTabCompletion soFar pos
-            reader priorIndex soFar pos            
+            reader priorIndex newSoFar newPos            
         // Finally, if none of the above and the key pressed is not a control char (e.g. Alt, Esc), it is appended.
         // Unless the line is already at max length, in which case nothing is done.
         | _ ->

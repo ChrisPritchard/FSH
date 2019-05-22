@@ -76,7 +76,7 @@ let readLine (prior: string list) =
         // Ensure the console buffer is wide enough for our text. 
         // This change solved so, so many issues.
         let bufferLengthRequired = startPos + soFar.Length
-        if bufferLengthRequired >= Console.BufferWidth then 
+        if isWindows && bufferLengthRequired >= Console.BufferWidth then 
             Console.BufferWidth <- bufferLengthRequired + 1
 
         // By printing out the current content of the line after every 

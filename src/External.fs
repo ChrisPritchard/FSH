@@ -5,7 +5,6 @@ module External
 open System
 open System.Diagnostics
 open System.ComponentModel
-open System.Runtime.InteropServices
 open Common
 
 /// Attempts to run an executable (not a builtin like cd or dir), ignoring the output
@@ -27,7 +26,7 @@ let rec launchProcessWithoutCapture fileName args =
         | :? Win32Exception as ex ->
             // If on windows and the error the file isn't an executable, try piping through explorer.
             // This will cause explorer to query the registry for the default handler program.
-            if ex.Message = notExecutableError && RuntimeInformation.IsOSPlatform OSPlatform.Windows then
+            if ex.Message = notExecutableError && isWindows then
                 launchProcessWithoutCapture "explorer" (fileName::args)
             else
                 // Will USUALLY occur when trying to run a process that doesn't exist.
@@ -64,7 +63,7 @@ let rec launchProcess fileName args writeOut writeError =
         | :? Win32Exception as ex ->
             // If on windows and the error the file isn't an executable, try piping through explorer.
             // This will cause explorer to query the registry for the default handler program.
-            if ex.Message = notExecutableError && RuntimeInformation.IsOSPlatform OSPlatform.Windows then
+            if ex.Message = notExecutableError && isWindows then
                 launchProcess "explorer" (fileName::args) writeOut writeError
             else
                 // Will USUALLY occur when trying to run a process that doesn't exist.

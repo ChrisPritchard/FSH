@@ -8,6 +8,7 @@ module Builtins
 open System
 open System.IO
 open System.Collections
+open Common
 
 /// Returns the current process directory. By default this is where it was started, and can be changed with the cd builtin.
 let currentDir () = Directory.GetCurrentDirectory ()
@@ -44,11 +45,12 @@ let private dir args writeOut _ =
 /// Changes the curent process directory.
 let private cd args _ writeError =
     if List.isEmpty args then writeError "no path specified"
+    elif args.[0] = "\\" && isWindows then Directory.SetCurrentDirectory "/"
     else
         let newPath = Path.Combine (currentDir (), args.[0])
         let newPath = if newPath.EndsWith "/" then newPath else newPath + "/"
         if Directory.Exists newPath then 
-            Directory.SetCurrentDirectory(newPath)
+            Directory.SetCurrentDirectory newPath
         else
             writeError "directory not found"
   

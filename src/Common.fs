@@ -31,8 +31,10 @@ let printc colour text =
     apply colour
     printf "%s" text
     apply current
+       
+let isWindows = RuntimeInformation.IsOSPlatform OSPlatform.Windows
 
-let newline = if RuntimeInformation.IsOSPlatform OSPlatform.Windows then "\r\n" else "\n"
+let newline = if isWindows then "\r\n" else "\n"
 
 /// When tabbing inside a code expressiom, this controls how many spaces are added.
 let codeSpaces = 4

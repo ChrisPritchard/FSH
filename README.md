@@ -56,8 +56,6 @@ To run on the command line, navigate to the **/src** directory and use the comma
 
 It was built with Visual Studio 2017 Community (with occasional work done in VS Code) so instead of the CLI, you could open the **FSH.sln** solution file and run using F5 in VS.
 
-Additionally, there are precompiled **releases** available. These were pre-built using dotnet publish for win-x64, linux-x64 and osx-x64, and should run without needing the framework installed. Access these from the releases link.
-
 There are also some XUnit/FsUnit tests defined under /test, there for testing various input scenarios through the parts/tokenisation functions. Run them (if you wish) via `dotnet test` in the **/test** directory.
 
 **Important**: This was built in a month, and shells are a lot more complicated than they look. There *are* bugs, but *hopefully* during casual use you won't find them :)

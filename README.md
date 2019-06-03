@@ -50,7 +50,7 @@ On my machine, this will print:
 
 FSH has been built using **.NET Core 2.2**. To build, you will need to install this SDK from [here](https://dotnet.microsoft.com/download/dotnet-core/2.2).
 
-It has been tested in Linux (via Ubuntu 18 under WSL) and on Max OSX, without issues.
+It has been tested in Linux (via Ubuntu 18 under WSL and on a VM) and on Max OSX, with some minor issues (see [Issues](https://github.com/ChrisPritchard/FSH/issues) here on github).
 
 To run on the command line, navigate to the **/src** directory and use the command `dotnet run`
 
@@ -121,6 +121,8 @@ Code is run in [Interactive.fs](/src/Interactive.fs), which wraps FSI. For furth
 ## Why?
 
 This has been developed for the **[2019 F# Applied Competition](http://foundation.fsharp.org/applied_fsharp_challenge)**, as an educational project, over the course of about a month. 
+
+**Update:** It won in one of the competition categories, I am proud to say. Full results [here](http://foundation.fsharp.org/results_applied_fsharp_2019).
 
 The idea came from PowerShell, which as a developer who works primarily on windows machines, is my default shell. However, PowerShell syntax is very verbose, especially when using .NET code in-line; a shell with a simpler, more bash- or cmd-like syntax combined with the light syntax and type inferrence of F# seemed like a good thing to make into a proof-of-concept.
 

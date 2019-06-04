@@ -8,7 +8,9 @@ In addition to normal shell features (folder navigation, creation, deletion, ech
 
 To demonstrate what this means, using FSH, you could type a line like:
 
-	echo hello world |> (fun s -> s.ToUpper()) > result.txt
+```fsharp
+echo hello world |> (fun s -> s.ToUpper()) > result.txt
+```
 
 Which would create a text file in the current directory called result.txt, containing the text `HELLO WORLD`
 
@@ -20,8 +22,10 @@ As you type the above, the text is coloured automatically by the type of express
 
 For something more advanced, you could implement a simple 'grep' command (grep is not built in to FSH by default):
 
-	(let grep (s:string) arr = 
-		arr |> Array.filter (fun line -> line.Contains(s)))
+```fsharp
+(let grep (s:string) arr = 
+	arr |> Array.filter (fun line -> line.Contains(s)))
+```
 
 (**Note:** that shift/alt/control+enter will go to a new line, useful for code. Tabbing (four spaces) works as well, shunting the current line forward. Also, by piping arr on the second line, the line parameter does not need a type annotation.)
 
@@ -31,13 +35,18 @@ For something more advanced, you could implement a simple 'grep' command (grep i
 
 Then use this like:
 
-	ls |> (grep ".dll")
+```fsharp
+ls |> (grep ".dll")
+```
 
 This will list all dll files in the current directory, one per line.
 
 This can be used with any token, not just 'built-ins' like `echo` and `ls`. For example, if you wanted to get the list of templates in the dotnet CLI that support F#:
 
-	dotnet new |> (fun sa -> sa |> Seq.filter (fun s -> s.Contains "F#"))
+
+```fsharp
+dotnet new |> (fun sa -> sa |> Seq.filter (fun s -> s.Contains "F#"))
+```
 
 On my machine, this will print:
 
@@ -96,16 +105,22 @@ There is a special code expression, `(*)`. When This token is parsed, it treats 
 
 For example, say you ran this line:
 
-	echo printfn "hello world from FSH!" > greeter.fs
+```fsharp
+echo printfn "hello world from FSH!" > greeter.fs
+```
 
 You could then read and evaluate this file using:
 
-	cat greeter.fs |> (*)
+```fsharp
+cat greeter.fs |> (*)
+```
 
 Resulting in the output "hello world from FSH!" being printed to the console.
 Likewise, you could compose without a file, like:
 
-	echo printfn "FSH says Hello World" |> (*)
+```fsharp
+echo printfn "FSH says Hello World" |> (*)
+```
 
 To get "FSH says Hello World!" printed to the console.
 

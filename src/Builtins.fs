@@ -46,6 +46,8 @@ let private dir args writeOut _ =
 let private cd args _ writeError =
     if List.isEmpty args then writeError "no path specified"
     elif args.[0] = "\\" && isWindows then Directory.SetCurrentDirectory "/"
+    elif args.[0] = "~" then
+        Directory.SetCurrentDirectory(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile))
     else
         let newPath = Path.Combine (currentDir (), args.[0])
         let newPath = if newPath.EndsWith "/" then newPath else newPath + "/"

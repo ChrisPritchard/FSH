@@ -52,13 +52,11 @@ On my machine, this will print:
 
 ## Installing and Running
 
-FSH has been built using **.NET Core 2.2**. To build, you will need to install this SDK from [here](https://dotnet.microsoft.com/download/dotnet-core/2.2).
+FSH uses **.NET 5**. To build, you will need to install this SDK from [here](https://dotnet.microsoft.com/download/dotnet/5.0).
 
 It has been tested in Linux (via Ubuntu 18 under WSL and on a VM) and on Max OSX, with some minor issues (see [Issues](https://github.com/ChrisPritchard/FSH/issues) here on github).
 
 To run on the command line, navigate to the **/src** directory and use the command `dotnet run`
-
-It was built with Visual Studio 2017 Community (with occasional work done in VS Code) so instead of the CLI, you could open the **FSH.sln** solution file and run using F5 in VS.
 
 There are also some XUnit/FsUnit tests defined under /test, there for testing various input scenarios through the parts/tokenisation functions. Run them (if you wish) via `dotnet test` in the **/test** directory.
 

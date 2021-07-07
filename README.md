@@ -2,6 +2,10 @@
 
 FSH (**F**# **Sh**ell - pronounced like 'fish') is a shell, like CMD, Powershell or Bash, entirely written in F#.
 
+> **Update:** Recently upgraded to NET 5, no issues so far!
+
+> Note this is sort of a proof of concept, which while functional (ha), lacks a lot of functionality compared to a regular shell like bash, powershell or even cmd (e.g. `ls`, but no `ls -la`). But... you can run F#, so thats cool :)
+
 ## Basic Interactions
 
 In addition to normal shell features (folder navigation, creation, deletion, echo etc.), FSH also supports piping and F# interactive. You can run code to declare F# functions, then use those functions as part of a piping operation with the other builtin commands. You can also just declare anonymous expressions for piping.
@@ -69,7 +73,7 @@ Any shell has a number of commands that you can run, aside from things like exte
 - **cat [filename]** reads a file and prints out its output - also useful for piping
 - **> [filename]** prints out the piped in content into a file (this overwrites; **>>** appends instead).
 
-There are almost a dozen further commands, like **rm**, **mkdir**, **env** etc.
+There are almost a dozen further commands, like **rm**, **mkdir**, **env** etc. As mentioned in the intro, these commands do their very basic functions, and don't support the arguments you would expect from a regular shell, but they serve to prove the concept.
 
 All builtins are defined in [Builtins.fs](/src/Builtins.fs)
 
@@ -122,7 +126,7 @@ Code is run in [Interactive.fs](/src/Interactive.fs), which wraps FSI. For furth
 
 This has been developed for the **[2019 F# Applied Competition](http://foundation.fsharp.org/applied_fsharp_challenge)**, as an educational project, over the course of about a month. 
 
-**Update:** It won in one of the competition categories, I am proud to say. Full results [here](http://foundation.fsharp.org/results_applied_fsharp_2019).
+> **Update:** It won in one of the competition categories, I am proud to say. Full results [here](http://foundation.fsharp.org/results_applied_fsharp_2019).
 
 The idea came from PowerShell, which as a developer who works primarily on windows machines, is my default shell. However, PowerShell syntax is very verbose, especially when using .NET code in-line; a shell with a simpler, more bash- or cmd-like syntax combined with the light syntax and type inferrence of F# seemed like a good thing to make into a proof-of-concept.
 

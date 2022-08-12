@@ -26,10 +26,10 @@ type OutputWriter () =
     let out = StringBuilder ()
     let error = StringBuilder ()
     /// Non-error output content. Will be piped to the next token or console out.
-    member __.writeOut s =
+    member __.writeOut (s: string) =
         out.AppendLine s |> ignore
     /// Error output content. If this is used by a token's processor, then the full token process stops and the output is written to console out.
-    member __.writeError s =
+    member __.writeError (s: string) =
         error.AppendLine s |> ignore
     /// Used for piping, produces a Result<string, string> that is evaluated to see if processing should continue, and with what.
     /// This also trims off errant new lines at the end of the content.

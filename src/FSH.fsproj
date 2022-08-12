@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Authors>Christopher Pritchard</Authors>
     <Description>A command line shell written in F# with integrated F# Interactive</Description>
     <RepositoryUrl>https://github.com/ChrisPritchard/FSH</RepositoryUrl>

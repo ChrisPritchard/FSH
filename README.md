@@ -1,5 +1,7 @@
 # FSH
 
+[![Nuget](https://img.shields.io/nuget/v/FSH.svg?maxAge=0&colorB=brightgreen)](https://www.nuget.org/packages/FSH)
+
 FSH (**F**# **Sh**ell - pronounced like 'fish') is a shell, like CMD, Powershell or Bash, entirely written in F#.
 
 > **Update:** Recently upgraded to NET 5, no issues so far!

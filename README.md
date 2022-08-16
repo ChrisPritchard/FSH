@@ -6,6 +6,8 @@ FSH (**F**# **Sh**ell - pronounced like 'fish') is a shell, like CMD, Powershell
 
 > **Update:** Recently upgraded to NET 5, no issues so far!
 
+> **Update Update:** And now its NET 6, poggers
+
 > Note this is sort of a proof of concept, which while functional (ha), lacks a lot of functionality compared to a regular shell like bash, powershell or even cmd (e.g. `ls`, but no `ls -la`). But... you can run F#, so thats cool :)
 
 ## Basic Interactions
